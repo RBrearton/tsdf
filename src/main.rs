@@ -1,20 +1,26 @@
 // Declare the project structure.
 pub(crate) mod core;
 
-use crate::core::enums::LinkPtr;
-use crate::core::structs::{addr, Addr};
+use std::path::Path;
+
+use crate::core::enums::{FileFormat, IoMode};
+use crate::core::structs::TsdfFile;
+use crate::core::traits::TsdfFileTrait;
 
 fn main() {
-    // Make a new LinkPtr.
-    let addr_loc = 10;
-    let test_addr = Addr::new(addr_loc);
-    let link_ptr = LinkPtr::Addr(test_addr);
+    // Make a path to a test file.
+    let path = Path::new("test.tsdf");
 
-    // Print the LinkPtr.
-    match link_ptr {
-        LinkPtr::Addr(addr) => println!("Address: {}", addr_loc),
-        LinkPtr::Null => println!("Null pointer"),
-    }
+    // Create a new TsdfFile.
+    let tsdf_file = TsdfFile::new(path, IoMode::Read, FileFormat::Default);
 
-    println!("Hello, world!");
+    // Print the version of the file, the write mode, the path, the size, and the file format.
+    println!(
+        "Version: {}\nIoMode: {:?}\nPath: {:?}\nSize: {}\nFileFormat: {:?}",
+        tsdf_file.get_version(),
+        tsdf_file.get_io_mode(),
+        tsdf_file.get_path(),
+        tsdf_file.get_size(),
+        tsdf_file.get_file_format()
+    );
 }
