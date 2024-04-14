@@ -12,7 +12,8 @@ fn main() {
     let path = Path::new("test.tsdf");
 
     // Create a new TsdfFile.
-    let tsdf_file = TsdfFile::new(path, IoMode::Read, FileFormat::Default);
+    let tsdf_file = TsdfFile::new(path, IoMode::LocklessWrite, FileFormat::Default)
+        .expect("Failed to create TsdfFile.");
 
     // Print the version of the file, the write mode, the path, the size, and the file format.
     println!(
