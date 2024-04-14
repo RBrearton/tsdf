@@ -51,7 +51,7 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
         unimplemented!()
     }
 
-    fn new(path: &'static Path, io_mode: IoMode, file_format: FileFormat) -> io::Result<&Self> {
+    fn new(path: &'static Path, io_mode: IoMode, file_format: FileFormat) -> io::Result<Box<Self>> {
         // If we're expecting to have to write to the file, make sure that its directory exists, so
         // that File::create doesn't panic if the directory doesn't exist.
         if io_mode.is_write_mode() {
@@ -68,12 +68,12 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
         // Get the version from cargo.
         let version = env!("CARGO_PKG_VERSION");
 
-        Ok(&TsdfFile {
+        Ok(Box::new(TsdfFile {
             path,
             version,
             file,
             file_format,
             io_mode,
-        })
+        }))
     }
 }

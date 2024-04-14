@@ -24,5 +24,5 @@ pub trait TsdfFileTrait {
     fn get_root_dir(&self) -> &Dir;
 
     /// Constructs a new TsdfFileTrait, taking a path, IoMode and FileFormat as arguments.
-    fn new(path: &'static Path, io_mode: IoMode, file_format: FileFormat) -> io::Result<&Self>;
+    fn new(path: &'static Path, io_mode: IoMode, file_format: FileFormat) -> io::Result<Box<Self>>;
 }
