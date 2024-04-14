@@ -1,0 +1,12 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./Cargo.toml",
+    ],
+    "cSpell.words": [
+        "LinkPtrs",
+        "reimplementation",
+        "swmr",
+        "tsdf",
+        "vals"
+    ]
+}
