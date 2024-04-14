@@ -1,3 +1,4 @@
+use std::io;
 use std::path::Path;
 
 use crate::core::enums::{FileFormat, IoMode};
@@ -23,5 +24,5 @@ pub trait TsdfFileTrait {
     fn get_root_dir(&self) -> &Dir;
 
     /// Constructs a new TsdfFileTrait, taking a path, IoMode and FileFormat as arguments.
-    fn new(path: &'static Path, io_mode: IoMode, file_format: FileFormat) -> Self;
+    fn new(path: &'static Path, io_mode: IoMode, file_format: FileFormat) -> io::Result<&Self>;
 }
