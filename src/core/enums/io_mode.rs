@@ -17,7 +17,7 @@ pub enum IoMode {
 
 // Now add a function to the IoMode enum that returns true if the IoMode is a write mode.
 impl IoMode {
-    pub fn is_write_mode(&self) -> bool {
+    pub fn is_a_writing_mode(&self) -> bool {
         match self {
             IoMode::Read => false,
             IoMode::LocklessWrite => true,
