@@ -1,7 +1,7 @@
-/// Enum to specify the write mode of a file. Please note that, for all production use cases, the
-/// write mode should be set to `Binary`. The `Text` mode is only for debugging and development.
+/// Enum to specify the file format of a file. Please note that, for all production use cases, the
+/// file format should be set to `Binary`. The `Text` mode is only for debugging and development.
 pub enum FileFormat {
-    /// Use the default write mode if creating a file. If the file already exists, the write mode
+    /// Use the default file format if creating a file. If the file already exists, the file format
     /// will be inferred from the file.
     Default,
 

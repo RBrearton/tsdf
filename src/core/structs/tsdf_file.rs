@@ -13,7 +13,7 @@ pub struct TsdfFile<'a, 'b> {
     version: &'b str,
 
     /// The mode used to write the file.
-    write_mode: FileFormat,
+    file_format: FileFormat,
 
     /// The open file handle.
     file: File,
