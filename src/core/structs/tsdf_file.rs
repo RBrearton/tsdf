@@ -55,7 +55,11 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
         // If we're expecting to have to write to the file, make sure that its directory exists, so
         // that File::create doesn't panic if the directory doesn't exist.
         if io_mode.is_write_mode() {
-            create_dir_all(path)?;
+            // Get the parent directory of the file.
+            if let Some(parent) = path.parent() {
+                // Create the parent directory if it doesn't exist.
+                create_dir_all(parent)?;
+            }
         }
 
         // Now either open or create the file, depending on the IoMode.
