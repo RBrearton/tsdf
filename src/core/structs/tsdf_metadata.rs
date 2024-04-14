@@ -1,7 +1,10 @@
+use serde::{Deserialize, Serialize};
+
 use crate::core::enums::{FileFormat, IoMode};
 
 /// The core metadata for a tsdf file. This is written at the very beginning of every tsdf file as
 /// a json blob.
+#[derive(Serialize, Deserialize)]
 pub(super) struct TsdfMetadata<'a> {
     /// The semantic version of tsdf used to write the file.
     version: &'a str,

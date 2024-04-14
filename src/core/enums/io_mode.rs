@@ -1,5 +1,7 @@
+use serde::{Deserialize, Serialize};
+
 /// Enum for the different IO modes.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum IoMode {
     /// Read the file. This never places a lock on the file.
     Read,
