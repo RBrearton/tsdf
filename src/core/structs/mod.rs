@@ -8,6 +8,7 @@ pub(crate) mod dist_dict_shard;
 pub(crate) mod high_level_object_metadata;
 
 pub(self) mod tsdf_metadata;
+pub(self) mod uninitialized_tsdf_metadata;
 
 pub(crate) use addr::Addr;
 pub(crate) use array::Array;
@@ -17,5 +18,6 @@ pub(crate) use dist_dict_shard::DistDictShard;
 pub(crate) use tsdf_file::TsdfFile;
 
 pub(self) use tsdf_metadata::TsdfMetadata;
+pub(self) use uninitialized_tsdf_metadata::UninitializedTsdfMetadata;
 
 use high_level_object_metadata::HighLevelObjectMetadata;
