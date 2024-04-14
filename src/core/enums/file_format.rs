@@ -4,10 +4,6 @@ use serde::{Deserialize, Serialize};
 /// file format should be set to `Binary`. The `Text` mode is only for debugging and development.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum FileFormat {
-    /// Use the default file format if creating a file. If the file already exists, the file format
-    /// will be inferred from the file.
-    Default,
-
     /// Write the file in binary mode. This is the recommended mode for all production use cases.
     Binary,
 
