@@ -1,4 +1,5 @@
 use std::io;
+use std::os::unix::fs::FileExt;
 use std::{
     fs::{create_dir_all, File},
     path::Path,
@@ -7,28 +8,30 @@ use std::{
 use crate::core::enums::{FileFormat, IoMode};
 use crate::core::traits::TsdfFileTrait;
 
-use super::Dir;
+use super::{Dir, TsdfMetadata};
 
 pub struct TsdfFile<'a, 'b> {
     /// The actual operating system path to the file.
     path: &'a Path,
 
-    /// The semantic version of tsdf used to write the file.
-    version: &'b str,
-
-    /// The mode used to write the file.
-    file_format: FileFormat,
-
-    /// The IoMode used to open the file.
-    io_mode: IoMode,
+    /// The core file metadata.
+    metadata: TsdfMetadata<'b>,
 
     /// The open file handle.
     file: File,
 }
 
+// Implement private methods for TsdfFile.
+impl TsdfFile<'_, '_> {
+    fn init_new_file(&self) {
+        // Write the metadata to the file's header as a json blob.
+    }
+}
+
+// Implement the TsdfFileTrait for TsdfFile.
 impl TsdfFileTrait for TsdfFile<'_, '_> {
     fn get_version(&self) -> &str {
-        self.version
+        self.metadata.get_version()
     }
 
     fn get_path(&self) -> &Path {
@@ -36,11 +39,11 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
     }
 
     fn get_io_mode(&self) -> &IoMode {
-        &self.io_mode
+        &self.metadata.get_io_mode()
     }
 
     fn get_file_format(&self) -> &FileFormat {
-        &self.file_format
+        &self.metadata.get_file_format()
     }
 
     fn get_size(&self) -> u64 {
@@ -72,12 +75,13 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
         // Get the version from cargo.
         let version = env!("CARGO_PKG_VERSION");
 
+        // Make a new TsdfMetadata.
+        let metadata = TsdfMetadata::new(version, file_format, io_mode);
+
         Ok(Box::new(TsdfFile {
             path,
-            version,
             file,
-            file_format,
-            io_mode,
+            metadata,
         }))
     }
 }
