@@ -1,4 +1,8 @@
-use std::{fs::File, path::Path};
+use std::io;
+use std::{
+    fs::{create_dir_all, File},
+    path::Path,
+};
 
 use crate::core::enums::{FileFormat, IoMode};
 use crate::core::traits::TsdfFileTrait;
@@ -47,18 +51,29 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
         unimplemented!()
     }
 
-    fn new(path: &'static Path, io_mode: IoMode, file_format: FileFormat) -> Self {
-        let file = File::open(path).unwrap();
+    fn new(path: &'static Path, io_mode: IoMode, file_format: FileFormat) -> io::Result<&Self> {
+        // If we're expecting to have to write to the file, make sure that its directory exists, so
+        // that File::create doesn't panic if the directory doesn't exist.
+        if io_mode.is_write_mode() {
+            create_dir_all(path)?;
+        }
+
+        // Now either open or create the file, depending on the IoMode.
+        let file = match io_mode {
+            IoMode::Read => File::open(path).unwrap(),
+            IoMode::LockingWrite => File::create(path).unwrap(),
+            IoMode::LocklessWrite => File::create(path).unwrap(),
+        };
 
         // Get the version from cargo.
         let version = env!("CARGO_PKG_VERSION");
 
-        TsdfFile {
+        Ok(&TsdfFile {
             path,
             version,
             file,
             file_format,
             io_mode,
-        }
+        })
     }
 }
