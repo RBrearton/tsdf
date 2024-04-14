@@ -3,3 +3,9 @@
 pub(crate) struct Addr {
     loc: u64,
 }
+
+impl Addr {
+    pub(crate) fn new(loc: u64) -> Self {
+        Self { loc }
+    }
+}
