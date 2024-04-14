@@ -1,9 +1,9 @@
-use crate::core::enums::LinkPtr;
+use crate::core::structs::Addr;
 
 pub(crate) trait FileSerializable {
     /// Writes the object to the file at the given location.
-    fn write(&self, loc: LinkPtr);
+    fn write(&self, addr: Addr);
 
     /// Reads the object from the file at the given location.
-    fn read(loc: LinkPtr) -> Self;
+    fn from_addr(addr: Addr) -> Self;
 }

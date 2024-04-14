@@ -1,6 +1,6 @@
 pub mod array;
 pub mod dir;
-pub mod file;
+pub mod tsdf_file;
 
 pub(crate) mod addr;
 pub(crate) mod dist_dict;
@@ -12,6 +12,6 @@ pub(crate) use array::Array;
 pub(crate) use dir::Dir;
 pub(crate) use dist_dict::DistDict;
 pub(crate) use dist_dict_shard::DistDictShard;
-pub(crate) use file::File;
+pub(crate) use tsdf_file::TsdfFile;
 
 use high_level_object_metadata::HighLevelObjectMetadata;
