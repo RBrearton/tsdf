@@ -12,3 +12,14 @@ pub enum IoMode {
     /// deletion, at the cost of not allowing readers to concurrently access the file.
     LockingWrite,
 }
+
+// Now add a function to the IoMode enum that returns true if the IoMode is a write mode.
+impl IoMode {
+    pub fn is_write_mode(&self) -> bool {
+        match self {
+            IoMode::Read => false,
+            IoMode::LocklessWrite => true,
+            IoMode::LockingWrite => true,
+        }
+    }
+}
