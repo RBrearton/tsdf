@@ -1,6 +1,6 @@
 use std::{fs::File, path::Path};
 
-use crate::core::enums::WriteMode;
+use crate::core::enums::FileFormat;
 use crate::core::traits::TsdfFileTrait;
 
 use super::Dir;
@@ -13,7 +13,7 @@ pub struct TsdfFile<'a, 'b> {
     version: &'b str,
 
     /// The mode used to write the file.
-    write_mode: WriteMode,
+    write_mode: FileFormat,
 
     /// The open file handle.
     file: File,
