@@ -1,5 +1,6 @@
 /// Enum to specify the file format of a file. Please note that, for all production use cases, the
 /// file format should be set to `Binary`. The `Text` mode is only for debugging and development.
+#[derive(Debug)]
 pub enum FileFormat {
     /// Use the default file format if creating a file. If the file already exists, the file format
     /// will be inferred from the file.

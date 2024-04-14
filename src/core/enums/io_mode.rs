@@ -1,4 +1,5 @@
 /// Enum for the different IO modes.
+#[derive(Debug)]
 pub enum IoMode {
     /// Read the file. This never places a lock on the file.
     Read,
