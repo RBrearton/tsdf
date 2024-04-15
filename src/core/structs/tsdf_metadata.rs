@@ -24,7 +24,7 @@ pub(super) struct TsdfMetadata<'a> {
 
 impl<'a> TsdfMetadata<'a> {
     /// Constructs a new TsdfMetadata.
-    pub fn new(version: &'a str, file_format: FileFormat, io_mode: IoMode) -> Self {
+    pub(crate) fn new(version: &'a str, file_format: FileFormat, io_mode: IoMode) -> Self {
         Self {
             version,
             file_format,
@@ -33,7 +33,7 @@ impl<'a> TsdfMetadata<'a> {
     }
 
     /// Deserializes a TsdfMetadata from the top of a tsdf file.
-    fn read_from_tsdf(mut file: File) -> Result<Self, io::Error> {
+    pub(crate) fn read_from_tsdf(mut file: File) -> Result<Self, io::Error> {
         // Seek to the beginning of the file.
         file.seek(std::io::SeekFrom::Start(0))?;
 
