@@ -1,7 +1,7 @@
 use std::io;
 use std::path::Path;
 
-use crate::core::enums::{FileFormat, IoMode};
+use crate::core::enums::{FileFormat, IoMode, WriteMode};
 use crate::core::structs::Dir;
 
 pub trait TsdfFileTrait {
@@ -23,6 +23,31 @@ pub trait TsdfFileTrait {
     /// Returns the root Dir of the file.
     fn get_root_dir(&self) -> &Dir;
 
-    /// Constructs a new TsdfFileTrait, taking a path, IoMode and FileFormat as arguments.
-    fn new(path: &'static Path, io_mode: IoMode, file_format: FileFormat) -> io::Result<Box<Self>>;
+    /// Constructs a new TsdfFileTrait as a reader, taking a path as an argument.
+    fn new_reader(path: &'static Path) -> io::Result<Box<Self>>;
+
+    /// Constructs a new TsdfFileTrait as a writer.
+    ///
+    /// # Usage
+    /// There are four options to consider:
+    /// 1. If the file exists, and you don't pass a write_mode/file_format, theses will be read from
+    ///   the file.
+    /// 2. If the file exists, and you pass a write_mode/file_format, these must match the existing
+    ///  file's write_mode/file_format, or the function will return an error.
+    /// 3. If the file doesn't exist, and you don't pass a write_mode/file_format, these will
+    ///  default to WriteMode::LocklessWrite and FileFormat::Binary.
+    /// 4. If the file doesn't exist, and you pass a write_mode/file_format, these will be used.
+    fn new_writer(
+        path: &'static Path,
+        write_mode: Option<WriteMode>,
+        file_format: Option<FileFormat>,
+    ) -> io::Result<Box<Self>>;
+
+    /// Constructs a new TsdfFileTrait as a writer. This function will always create a new file,
+    /// completely overwriting any existing file.
+    fn new_overwriting_writer(
+        path: &'static Path,
+        write_mode: Option<WriteMode>,
+        file_format: Option<FileFormat>,
+    ) -> io::Result<Box<Self>>;
 }
