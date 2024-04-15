@@ -5,7 +5,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::core::enums::{FileFormat, IoMode};
+use crate::core::enums::FileFormat;
 use crate::core::well_known_values::metadata_strings::HEADER_END_STR;
 
 /// The core metadata for a tsdf file. This is written at the very beginning of every tsdf file as
@@ -21,7 +21,7 @@ pub(super) struct TsdfMetadata<'a> {
 
 impl<'a> TsdfMetadata<'a> {
     /// Constructs a new TsdfMetadata.
-    pub(crate) fn new(version: &'a str, file_format: FileFormat, io_mode: IoMode) -> Self {
+    pub(crate) fn new(version: &'a str, file_format: FileFormat) -> Self {
         Self {
             version,
             file_format,
