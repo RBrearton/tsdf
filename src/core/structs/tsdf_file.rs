@@ -5,11 +5,12 @@ use std::{
     path::Path,
 };
 
-use crate::core::enums::{FileFormat, IoMode};
+use crate::core::enums::{FileFormat, IoMode, ReadMode, WriteMode};
 use crate::core::traits::TsdfFileTrait;
 
 use super::{Dir, TsdfMetadata};
 
+/// The central TsdfFile struct. This struct is used to interact with tsdf files.
 pub struct TsdfFile<'a, 'b> {
     /// The actual operating system path to the file.
     path: &'a Path,
@@ -19,14 +20,13 @@ pub struct TsdfFile<'a, 'b> {
 
     /// The open file handle.
     file: File,
+
+    /// The IoMode used to open the file. This governs how we interact with the file.
+    io_mode: IoMode,
 }
 
 // Implement private methods for TsdfFile.
-impl TsdfFile<'_, '_> {
-    fn init_new_file(&self) {
-        // Write the metadata to the file's header as a json blob.
-    }
-}
+impl TsdfFile<'_, '_> {}
 
 // Implement the TsdfFileTrait for TsdfFile.
 impl TsdfFileTrait for TsdfFile<'_, '_> {
@@ -39,7 +39,7 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
     }
 
     fn get_io_mode(&self) -> &IoMode {
-        &self.metadata.get_io_mode()
+        &self.get_io_mode()
     }
 
     fn get_file_format(&self) -> &FileFormat {
@@ -54,34 +54,109 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
         unimplemented!()
     }
 
-    fn new(path: &'static Path, io_mode: IoMode, file_format: FileFormat) -> io::Result<Box<Self>> {
-        // If we're expecting to have to write to the file, make sure that its directory exists, so
-        // that File::create doesn't panic if the directory doesn't exist.
-        if io_mode.is_write_mode() {
-            // Get the parent directory of the file.
-            if let Some(parent) = path.parent() {
-                // Create the parent directory if it doesn't exist.
-                create_dir_all(parent)?;
+    fn new_reader(path: &'static Path) -> io::Result<Box<Self>> {
+        // Open the file. If the file doesn't exist, we're perfectly happy to panic - we can't read
+        // from a file that doesn't exist.
+        let file = File::open(path)?;
+
+        // Deserialize the metadata from the header of the file.
+        let metadata = TsdfMetadata::read_from_tsdf(file)?;
+        let io_mode = IoMode::Read(ReadMode::LocklessRead);
+
+        // Return the TsdfFile.
+        Ok(Box::new(TsdfFile {
+            path,
+            file,
+            metadata,
+            io_mode,
+        }))
+    }
+
+    fn new_writer(
+        path: &'static Path,
+        write_mode: Option<WriteMode>,
+        file_format: Option<FileFormat>,
+    ) -> io::Result<Box<Self>> {
+        // First of all, if the file doesn't exist, we can just use new_overwriting_writer, as the
+        // behaviour will be identical.
+        if !path.exists() {
+            return Self::new_overwriting_writer(path, write_mode, file_format);
+        }
+
+        // If execution reaches here, we know that the file already exists. Deserialize the metadata
+        // from the file.
+        let file = File::open(path)?;
+        let metadata = TsdfMetadata::read_from_tsdf(file)?;
+
+        // Make sure that the file format in the metadata matches the file format passed in.
+        if let Some(file_format) = file_format {
+            if metadata.get_file_format() != &file_format {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "File format does not match existing file format.",
+                ));
             }
         }
 
-        // Now either open or create the file, depending on the IoMode.
-        let file = match io_mode {
-            IoMode::Read => File::open(path).unwrap(),
-            IoMode::LockingWrite => File::create(path).unwrap(),
-            IoMode::LocklessWrite => File::create(path).unwrap(),
-        };
+        // If we weren't passed a write mode, default to lockless write.
+        let write_mode = write_mode.unwrap_or(WriteMode::LocklessWrite);
+        let io_mode = IoMode::Write(write_mode);
+
+        // If execution reaches here, we know that the write mode and file format match the existing
+        // file's write mode and file format. Return the TsdfFile.
+        Ok(Box::new(TsdfFile {
+            path,
+            file: File::open(path)?,
+            metadata,
+            io_mode,
+        }))
+    }
+
+    fn new_overwriting_writer(
+        path: &'static Path,
+        write_mode: Option<crate::core::enums::WriteMode>,
+        file_format: Option<FileFormat>,
+    ) -> io::Result<Box<Self>> {
+        // Get the parent directory of the file.
+        if let Some(parent) = path.parent() {
+            // Create the parent directory if it doesn't exist.
+            create_dir_all(parent)?;
+        }
+
+        // Delete the file if it exists.
+        if path.exists() {
+            std::fs::remove_file(path)?;
+        }
+
+        // Now create the file.
+        let file = File::create(path)?;
 
         // Get the version from cargo.
         let version = env!("CARGO_PKG_VERSION");
 
         // Make a new TsdfMetadata.
-        let metadata = TsdfMetadata::new(version, file_format, io_mode);
+        let metadata = {
+            let file_format = file_format.unwrap_or(FileFormat::Binary);
+            TsdfMetadata::new(version, file_format)
+        };
 
+        // Write the metadata to the beginning of the file.
+        let metadata_json = serde_json::to_vec(&metadata)?;
+        file.write_at(metadata_json.as_slice(), 0)?;
+
+        // Flush the file to disk.
+        file.sync_all()?;
+
+        // If we weren't passed a write mode, default to lockless write.
+        let write_mode = write_mode.unwrap_or(WriteMode::LocklessWrite);
+        let io_mode = IoMode::Write(write_mode);
+
+        // Return the TsdfFile.
         Ok(Box::new(TsdfFile {
             path,
             file,
             metadata,
+            io_mode,
         }))
     }
 }
