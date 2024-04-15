@@ -17,9 +17,6 @@ pub(super) struct TsdfMetadata<'a> {
 
     /// The mode used to write the file.
     file_format: FileFormat,
-
-    /// The IoMode used to open the file.
-    io_mode: IoMode,
 }
 
 impl<'a> TsdfMetadata<'a> {
@@ -28,7 +25,6 @@ impl<'a> TsdfMetadata<'a> {
         Self {
             version,
             file_format,
-            io_mode,
         }
     }
 
@@ -66,10 +62,5 @@ impl<'a> TsdfMetadata<'a> {
     /// Returns the file format of the file.
     pub fn get_file_format(&self) -> &FileFormat {
         &self.file_format
-    }
-
-    /// Returns the io mode of the file.
-    pub fn get_io_mode(&self) -> &IoMode {
-        &self.io_mode
     }
 }
