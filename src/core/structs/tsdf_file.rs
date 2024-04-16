@@ -8,21 +8,18 @@ use std::{
 use crate::core::enums::{FileFormat, IoMode, ReadMode, WriteMode};
 use crate::core::traits::TsdfFileTrait;
 
-use super::{Dir, TsdfMetadata};
+use super::{Dir, IoMetadata, TsdfMetadata};
 
 /// The central TsdfFile struct. This struct is used to interact with tsdf files.
 pub struct TsdfFile<'a> {
     /// The actual operating system path to the file.
     path: &'a Path,
 
-    /// The core file metadata.
-    metadata: TsdfMetadata,
+    /// All metadata used in I/O operations.
+    io_metadata: IoMetadata,
 
     /// The open file handle.
     file: File,
-
-    /// The IoMode used to open the file. This governs how we interact with the file.
-    io_mode: IoMode,
 }
 
 // Implement private methods for TsdfFile.
@@ -31,7 +28,7 @@ impl TsdfFile<'_> {}
 // Implement the TsdfFileTrait for TsdfFile.
 impl TsdfFileTrait for TsdfFile<'_> {
     fn get_version(&self) -> &str {
-        self.metadata.get_version()
+        self.io_metadata.get_tsdf_metadata().get_version()
     }
 
     fn get_path(&self) -> &Path {
@@ -39,11 +36,19 @@ impl TsdfFileTrait for TsdfFile<'_> {
     }
 
     fn get_io_mode(&self) -> &IoMode {
-        &self.io_mode
+        &self.io_metadata.get_io_mode()
     }
 
     fn get_file_format(&self) -> &FileFormat {
-        &self.metadata.get_file_format()
+        &self.get_io_metadata().get_tsdf_metadata().get_file_format()
+    }
+
+    fn get_io_metadata(&self) -> &IoMetadata {
+        &self.io_metadata
+    }
+
+    fn get_tsdf_metadata(&self) -> &TsdfMetadata {
+        self.io_metadata.get_tsdf_metadata()
     }
 
     fn get_size(&self) -> u64 {
@@ -62,13 +67,13 @@ impl TsdfFileTrait for TsdfFile<'_> {
         // Deserialize the metadata from the header of the file.
         let metadata = TsdfMetadata::read_from_tsdf(&mut file)?;
         let io_mode = IoMode::Read(ReadMode::LocklessRead);
+        let io_metadata = IoMetadata::new(metadata, io_mode);
 
         // Return the TsdfFile.
         Ok(Box::new(TsdfFile {
             path,
             file,
-            metadata,
-            io_mode,
+            io_metadata,
         }))
     }
 
@@ -107,8 +112,7 @@ impl TsdfFileTrait for TsdfFile<'_> {
         Ok(Box::new(TsdfFile {
             path,
             file: File::open(path)?,
-            metadata,
-            io_mode,
+            io_metadata: IoMetadata::new(metadata, io_mode),
         }))
     }
 
@@ -155,8 +159,7 @@ impl TsdfFileTrait for TsdfFile<'_> {
         Ok(Box::new(TsdfFile {
             path,
             file,
-            metadata,
-            io_mode,
+            io_metadata: IoMetadata::new(metadata, io_mode),
         }))
     }
 }
