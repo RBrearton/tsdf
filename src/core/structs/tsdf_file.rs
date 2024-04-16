@@ -11,12 +11,12 @@ use crate::core::traits::TsdfFileTrait;
 use super::{Dir, TsdfMetadata};
 
 /// The central TsdfFile struct. This struct is used to interact with tsdf files.
-pub struct TsdfFile<'a, 'b> {
+pub struct TsdfFile<'a> {
     /// The actual operating system path to the file.
     path: &'a Path,
 
     /// The core file metadata.
-    metadata: TsdfMetadata<'b>,
+    metadata: TsdfMetadata,
 
     /// The open file handle.
     file: File,
@@ -26,10 +26,10 @@ pub struct TsdfFile<'a, 'b> {
 }
 
 // Implement private methods for TsdfFile.
-impl TsdfFile<'_, '_> {}
+impl TsdfFile<'_> {}
 
 // Implement the TsdfFileTrait for TsdfFile.
-impl TsdfFileTrait for TsdfFile<'_, '_> {
+impl TsdfFileTrait for TsdfFile<'_> {
     fn get_version(&self) -> &str {
         self.metadata.get_version()
     }
@@ -39,7 +39,7 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
     }
 
     fn get_io_mode(&self) -> &IoMode {
-        &self.get_io_mode()
+        &self.io_mode
     }
 
     fn get_file_format(&self) -> &FileFormat {
@@ -57,10 +57,10 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
     fn new_reader(path: &'static Path) -> io::Result<Box<Self>> {
         // Open the file. If the file doesn't exist, we're perfectly happy to panic - we can't read
         // from a file that doesn't exist.
-        let file = File::open(path)?;
+        let mut file = File::open(path)?;
 
         // Deserialize the metadata from the header of the file.
-        let metadata = TsdfMetadata::read_from_tsdf(file)?;
+        let metadata = TsdfMetadata::read_from_tsdf(&mut file)?;
         let io_mode = IoMode::Read(ReadMode::LocklessRead);
 
         // Return the TsdfFile.
@@ -85,8 +85,8 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
 
         // If execution reaches here, we know that the file already exists. Deserialize the metadata
         // from the file.
-        let file = File::open(path)?;
-        let metadata = TsdfMetadata::read_from_tsdf(file)?;
+        let mut file = File::open(path)?;
+        let metadata = TsdfMetadata::read_from_tsdf(&mut file)?;
 
         // Make sure that the file format in the metadata matches the file format passed in.
         if let Some(file_format) = file_format {
@@ -137,7 +137,7 @@ impl TsdfFileTrait for TsdfFile<'_, '_> {
         // Make a new TsdfMetadata.
         let metadata = {
             let file_format = file_format.unwrap_or(FileFormat::Binary);
-            TsdfMetadata::new(version, file_format)
+            TsdfMetadata::new(version.to_string(), file_format)
         };
 
         // Write the metadata to the beginning of the file.
