@@ -2,7 +2,7 @@ use std::io;
 use std::path::Path;
 
 use crate::core::enums::{FileFormat, IoMode, WriteMode};
-use crate::core::structs::Dir;
+use crate::core::structs::{Dir, IoMetadata, TsdfMetadata};
 
 pub trait TsdfFileTrait {
     /// Returns the version of the file.
@@ -16,6 +16,12 @@ pub trait TsdfFileTrait {
 
     /// Returns the file format of the file.
     fn get_file_format(&self) -> &FileFormat;
+
+    /// Returns the file's IoMetadata object.
+    fn get_io_metadata(&self) -> &IoMetadata;
+
+    /// Returns the file's TsdfMetadata object.
+    fn get_tsdf_metadata(&self) -> &TsdfMetadata;
 
     /// Returns the size of the file, in bytes.
     fn get_size(&self) -> u64;
