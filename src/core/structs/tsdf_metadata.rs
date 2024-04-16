@@ -29,7 +29,7 @@ impl TsdfMetadata {
     }
 
     /// Deserializes a TsdfMetadata from the top of a tsdf file.
-    pub(crate) fn read_from_tsdf(mut file: File) -> Result<Self, io::Error> {
+    pub(crate) fn read_from_tsdf(file: &mut File) -> Result<Self, io::Error> {
         // Seek to the beginning of the file.
         file.seek(std::io::SeekFrom::Start(0))?;
 
