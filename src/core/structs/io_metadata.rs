@@ -14,6 +14,14 @@ pub(super) struct IoMetadata {
 }
 
 impl IoMetadata {
+    /// Constructs a new IoMetadata object.
+    pub fn new(tsdf_metadata: TsdfMetadata, io_mode: IoMode) -> Self {
+        Self {
+            tsdf_metadata,
+            io_mode,
+        }
+    }
+
     /// Returns the TsdfMetadata stored in the file.
     pub fn get_tsdf_metadata(&self) -> &TsdfMetadata {
         &self.tsdf_metadata
