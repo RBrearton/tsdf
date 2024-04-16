@@ -11,17 +11,17 @@ use crate::core::well_known_values::metadata_strings::HEADER_END_STR;
 /// The core metadata for a tsdf file. This is written at the very beginning of every tsdf file as
 /// a json blob.
 #[derive(Serialize, Deserialize)]
-pub(super) struct TsdfMetadata<'a> {
+pub(super) struct TsdfMetadata {
     /// The semantic version of tsdf used to write the file.
-    version: &'a str,
+    version: String,
 
     /// The mode used to write the file.
     file_format: FileFormat,
 }
 
-impl<'a> TsdfMetadata<'a> {
+impl TsdfMetadata {
     /// Constructs a new TsdfMetadata.
-    pub(crate) fn new(version: &'a str, file_format: FileFormat) -> Self {
+    pub(crate) fn new(version: String, file_format: FileFormat) -> Self {
         Self {
             version,
             file_format,
@@ -56,7 +56,7 @@ impl<'a> TsdfMetadata<'a> {
 
     /// Returns the version of the file.
     pub fn get_version(&self) -> &str {
-        self.version
+        &self.version
     }
 
     /// Returns the file format of the file.
