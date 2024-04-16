@@ -7,6 +7,8 @@ pub(crate) mod dist_dict;
 pub(crate) mod dist_dict_shard;
 pub(crate) mod high_level_object_metadata;
 
+pub(self) mod dist_list_shard;
+pub(self) mod io_metadata;
 pub(self) mod tsdf_metadata;
 
 pub(crate) use addr::Addr;
@@ -16,6 +18,8 @@ pub(crate) use dist_dict::DistDict;
 pub(crate) use dist_dict_shard::DistDictShard;
 pub(crate) use tsdf_file::TsdfFile;
 
+pub(self) use dist_list_shard::DistListShard;
+pub(self) use io_metadata::IoMetadata;
 pub(self) use tsdf_metadata::TsdfMetadata;
 
 use high_level_object_metadata::HighLevelObjectMetadata;
