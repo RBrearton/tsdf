@@ -5,7 +5,7 @@ use super::TsdfMetadata;
 /// All metadata required to carry out an I/O operation in the tsdf library. This includes the
 /// TsdfMetadata stored in the file, as well as the IoMode that is being used to interact with the
 /// file.
-pub(super) struct IoMetadata {
+pub(crate) struct IoMetadata {
     /// The core metadata for the tsdf file.
     tsdf_metadata: TsdfMetadata,
 
