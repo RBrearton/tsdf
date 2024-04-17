@@ -1,6 +1,8 @@
 use crate::core::enums::LinkPtr;
 
-pub(crate) trait Link {
+use super::Locatable;
+
+pub(crate) trait Link: Locatable {
     fn get_next(&self) -> &LinkPtr;
     fn get_link_number(&self) -> i32;
 }
