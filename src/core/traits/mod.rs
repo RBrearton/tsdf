@@ -8,6 +8,7 @@ pub(crate) mod file_serializable;
 pub(crate) mod has_metadata_tags;
 pub(crate) mod has_name;
 pub(crate) mod link;
+pub(crate) mod locatable;
 pub(crate) mod tsdf_file_trait;
 
 // Export the traits.
@@ -21,4 +22,5 @@ pub(crate) use self::file_serializable::FileSerializable;
 pub(crate) use self::has_metadata_tags::HasMetadataTags;
 pub(crate) use self::has_name::HasName;
 pub(crate) use self::link::Link;
+pub(crate) use self::locatable::Locatable;
 pub(crate) use self::tsdf_file_trait::TsdfFileTrait;
