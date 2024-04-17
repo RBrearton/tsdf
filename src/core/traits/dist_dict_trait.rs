@@ -1,7 +1,8 @@
 use super::FileSerializable;
 
-/// A distributed dictionary is a key-value store that is distributed across multiple shards.
-/// Anything that implements this pub(crate) trait can behave as a distributed dictionary.
+/// A distributed dictionary is a key-value store that is distributed across
+/// multiple shards. Anything that implements this pub(crate) trait can behave
+/// as a distributed dictionary.
 pub(crate) trait DistDictTrait<TKey: FileSerializable, TVal: FileSerializable> {
     /// Adds a key-value pair to the dictionary.
     fn add(&self, key: TKey, val: TVal);

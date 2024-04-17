@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 use crate::core::enums::FileFormat;
 use crate::core::well_known_values::metadata_strings::HEADER_END_STR;
 
-/// The core metadata for a tsdf file. This is written at the very beginning of every tsdf file as
-/// a json blob.
+/// The core metadata for a tsdf file. This is written at the very beginning of
+/// every tsdf file as a json blob.
 #[derive(Serialize, Deserialize)]
 pub(crate) struct TsdfMetadata {
     /// The semantic version of tsdf used to write the file.

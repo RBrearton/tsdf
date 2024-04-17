@@ -1,7 +1,8 @@
 use crate::core::traits::FileSerializable;
 
-/// The Addr struct is a simple struct that holds an integer location. This location is
-/// an offset within the file, and can be used to uniquely locate any byte in the file.
+/// The Addr struct is a simple struct that holds an integer location. This
+/// location is an offset within the file, and can be used to uniquely locate
+/// any byte in the file.
 #[derive(serde::Serialize, serde::Deserialize)]
 pub(crate) struct Addr {
     loc: u64,
@@ -41,7 +42,8 @@ impl FileSerializable for Addr {
     }
 }
 
-// A simple test to make sure that we can convert an Addr to bytes/json and back.
+// A simple test to make sure that we can convert an Addr to bytes/json and
+/// back.
 #[cfg(test)]
 mod tests {
     use super::*;

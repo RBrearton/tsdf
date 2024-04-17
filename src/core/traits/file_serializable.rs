@@ -5,7 +5,8 @@ use crate::core::{
     structs::{Addr, IoMetadata},
 };
 
-/// The FileSerializable trait is used to define objects that can be written to and read from files.
+/// The FileSerializable trait is used to define objects that can be written to
+/// and read from files.
 pub(crate) trait FileSerializable {
     /// Converts the object to a byte array.
     fn to_bytes(&self) -> Vec<u8>;
@@ -24,7 +25,8 @@ pub(crate) trait FileSerializable {
 
     /// Writes the object to the file at the given location.
     fn write(&self, addr: Addr, file: &File, io_metadata: &IoMetadata) {
-        // Depending on whether we're in binary or text mode, we'll write the object differently.
+        // Depending on whether we're in binary or text mode, we'll write the
+        // object differently.
         let bytes = match io_metadata.get_tsdf_metadata().get_file_format() {
             FileFormat::Binary => {
                 // Convert the object to bytes.
@@ -49,7 +51,8 @@ pub(crate) trait FileSerializable {
         let mut bytes = vec![0; Self::get_size_on_disk() as usize];
         file.read_at(&mut bytes, addr.get_loc()).unwrap();
 
-        // Depending on whether we're in binary or text mode, we'll read the object differently.
+        // Depending on whether we're in binary or text mode, we'll read the
+        // object differently.
         match io_metadata.get_tsdf_metadata().get_file_format() {
             FileFormat::Binary => {
                 // Convert the bytes to the object.

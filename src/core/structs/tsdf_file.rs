@@ -10,7 +10,8 @@ use crate::core::traits::TsdfFileTrait;
 
 use super::{Dir, IoMetadata, TsdfMetadata};
 
-/// The central TsdfFile struct. This struct is used to interact with tsdf files.
+/// The central TsdfFile struct. This struct is used to interact with tsdf
+/// files.
 pub struct TsdfFile<'a> {
     /// The actual operating system path to the file.
     path: &'a Path,
@@ -60,8 +61,8 @@ impl TsdfFileTrait for TsdfFile<'_> {
     }
 
     fn new_reader(path: &'static Path) -> io::Result<Box<Self>> {
-        // Open the file. If the file doesn't exist, we're perfectly happy to panic - we can't read
-        // from a file that doesn't exist.
+        // Open the file. If the file doesn't exist, we're perfectly happy to
+        // panic - we can't read from a file that doesn't exist.
         let mut file = File::open(path)?;
 
         // Deserialize the metadata from the header of the file.
@@ -82,18 +83,19 @@ impl TsdfFileTrait for TsdfFile<'_> {
         write_mode: Option<WriteMode>,
         file_format: Option<FileFormat>,
     ) -> io::Result<Box<Self>> {
-        // First of all, if the file doesn't exist, we can just use new_overwriting_writer, as the
-        // behaviour will be identical.
+        // First of all, if the file doesn't exist, we can just use
+        // new_overwriting_writer, as the behaviour will be identical.
         if !path.exists() {
             return Self::new_overwriting_writer(path, write_mode, file_format);
         }
 
-        // If execution reaches here, we know that the file already exists. Deserialize the metadata
-        // from the file.
+        // If execution reaches here, we know that the file already exists.
+        // Deserialize the metadata from the file.
         let mut file = File::open(path)?;
         let metadata = TsdfMetadata::read_from_tsdf(&mut file)?;
 
-        // Make sure that the file format in the metadata matches the file format passed in.
+        // Make sure that the file format in the metadata matches the file
+        // format passed in.
         if let Some(file_format) = file_format {
             if metadata.get_file_format() != &file_format {
                 return Err(io::Error::new(
@@ -107,8 +109,9 @@ impl TsdfFileTrait for TsdfFile<'_> {
         let write_mode = write_mode.unwrap_or(WriteMode::LocklessWrite);
         let io_mode = IoMode::Write(write_mode);
 
-        // If execution reaches here, we know that the write mode and file format match the existing
-        // file's write mode and file format. Return the TsdfFile.
+        // If execution reaches here, we know that the write mode and file
+        // format match the existing file's write mode and file format. Return
+        // the TsdfFile.
         Ok(Box::new(TsdfFile {
             path,
             file: File::open(path)?,
