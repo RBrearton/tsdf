@@ -5,6 +5,7 @@ use crate::core::{structs::Addr, traits::FileSerializable};
 /// The integer address isn't a memory address, but an offset within the file.
 /// The value 0 would be the first byte in the file, 1 would be the second byte,
 /// and so on. We can use this to uniquely locate any byte in the file.
+#[derive(serde::Serialize, serde::Deserialize)]
 pub(crate) enum LinkPtr {
     Addr(Addr),
     Null(Addr),
@@ -54,6 +55,10 @@ impl FileSerializable for LinkPtr {
 
     fn get_bin_size_on_disk() -> u64 {
         Addr::get_bin_size_on_disk()
+    }
+
+    fn get_json_size_on_disk() -> u64 {
+        Addr::get_json_size_on_disk()
     }
 }
 

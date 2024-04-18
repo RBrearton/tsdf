@@ -40,6 +40,16 @@ impl FileSerializable for Addr {
     fn get_bin_size_on_disk() -> u64 {
         std::mem::size_of::<u64>() as u64
     }
+
+    fn get_json_size_on_disk() -> u64 {
+        // To get the size of the json string, we make the largest possible
+        // Addr, convert it to json, and get the length of the json string. This
+        // is far from optimized, but the whole point of the json representation
+        // is to be debug-friendly, not performant.
+        let addr = Addr { loc: u64::MAX };
+        let json = addr.to_json();
+        json.len() as u64
+    }
 }
 
 // A simple test to make sure that we can convert an Addr to bytes/json and
