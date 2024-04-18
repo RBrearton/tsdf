@@ -1,10 +1,10 @@
-use std::hash::DefaultHasher;
+use std::hash::{DefaultHasher, Hasher};
 
 use crate::core::traits::FileSerializable;
 
 /// The TsdfHash struct is a simple struct that holds a hash value. This hash
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, serde::Serialize, serde::Deserialize, Debug)]
 pub(crate) struct TsdfHash {
     hash_value: u64,
 }
