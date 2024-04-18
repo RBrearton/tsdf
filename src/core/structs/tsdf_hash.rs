@@ -21,6 +21,11 @@ impl TsdfHash {
 
         Self { hash_value }
     }
+
+    /// Returns the hash value.
+    pub(crate) fn get_hash_value(&self) -> u64 {
+        self.hash_value
+    }
 }
 
 impl FileSerializable for TsdfHash {
