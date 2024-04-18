@@ -76,8 +76,7 @@ impl Link for DistDictShard<'_, '_> {
 }
 
 // Implement the DistDictShardTrait for DistDictShard.
-impl<TKey, TVal: FileSerializable> DistDictShardTrait<TKey, TVal>
-    for DistDictShard<'_, '_>
+impl<TKey, TVal> DistDictShardTrait<TKey, TVal> for DistDictShard<'_, '_>
 where
     TKey: TsdfHashable,
     TVal: FileSerializable,
@@ -86,15 +85,32 @@ where
         // The location of the nth hash is the location of the shard plus the
         // size of the next LinkPtr, plus the size of each hash and value up to
         // the nth hash.
-        let size_of_next = self.get_next().get_size_on_disk(self.io_metadata);
+        let size_of_next = LinkPtr::get_size_on_disk(self.io_metadata);
 
         // The size of each hash is the size of a TsdfHash.
-        // let size_of_hash = self
-        todo!()
+        let size_of_hash = TsdfHash::get_size_on_disk(self.io_metadata);
+
+        // The size of each value is the size of a T.
+        let size_of_val = TVal::get_size_on_disk(self.io_metadata);
+
+        // The location of the nth hash is the location of the shard plus the
+        // size of the next LinkPtr, plus the size of each hash and value up to
+        // the nth hash.
+        let loc = self.loc.get_loc()
+            + size_of_next
+            + (size_of_hash + size_of_val) * n as u64;
+
+        Addr::new(loc)
     }
 
     fn get_val_loc(&self, n: usize) -> Addr {
-        todo!()
+        // The location of the nth value is the location of the nth hash plus
+        // the size of the hash.
+        let size_of_hash = TsdfHash::get_size_on_disk(self.io_metadata);
+
+        let loc = <DistDictShard<'_, '_> as DistDictShardTrait<TKey, TVal>>::get_hash_loc(self, n).get_loc() + size_of_hash;
+
+        Addr::new(loc)
     }
 
     fn get_num_keys(&self) -> usize {
