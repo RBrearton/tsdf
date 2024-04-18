@@ -4,9 +4,12 @@
     ],
     "cSpell.words": [
         "behaviour",
+        "hashable",
+        "Hasher",
         "LinkPtrs",
         "Readerless",
         "reimplementation",
+        "rkyv",
         "swmr",
         "tsdf",
         "vals"
