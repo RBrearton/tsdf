@@ -108,7 +108,10 @@ where
         // the size of the hash.
         let size_of_hash = TsdfHash::get_size_on_disk(self.io_metadata);
 
-        let loc = <DistDictShard<'_, '_> as DistDictShardTrait<TKey, TVal>>::get_hash_loc(self, n).get_loc() + size_of_hash;
+        let loc = <DistDictShard<'_, '_> as DistDictShardTrait<
+            TKey,
+            TVal,
+        >>::get_hash_loc(self, n).get_loc() + size_of_hash;
 
         Addr::new(loc)
     }
@@ -120,8 +123,23 @@ where
     }
 
     fn contains(&self, hash: TsdfHash) -> bool {
-        // Now
-        todo!()
+        // To check if the shard contains a hash, we need to calculate the hash
+        // modulo the number of keys to work out the hash's position in the
+        // shard.
+        let num_keys = <DistDictShard<'_, '_> as DistDictShardTrait<
+            TKey,
+            TVal,
+        >>::get_num_keys(&self);
+        let n = hash.get_hash_value() % num_keys as u64;
+
+        // Now we need to check if the hash at position n is equal to the hash
+        // we're looking for.
+        let hash_n = <DistDictShard<'_, '_> as DistDictShardTrait<
+            TKey,
+            TVal,
+        >>::get_hash(&self, n as usize);
+
+        hash == hash_n
     }
 
     fn add(&self, key: &TKey, val: &TVal, hash: TsdfHash) {
