@@ -11,10 +11,11 @@ fn main() {
     let path = Path::new("test.tsdf");
 
     // Create a new TsdfFile overwriting writer.
-    let tsdf_file =
-        TsdfFile::new_overwriting_writer(path, None, None).expect("Failed to create file.");
+    let tsdf_file = TsdfFile::new_overwriting_writer(path, None, None)
+        .expect("Failed to create file.");
 
-    // Print the version of the file, the write mode, the path, the size, and the file format.
+    // Print the version of the file, the write mode, the path, the size, and
+    // the file format.
     println!(
         "Version: {}\nIoMode: {:?}\nPath: {:?}\nSize: {}\nFileFormat: {:?}",
         tsdf_file.get_version(),
