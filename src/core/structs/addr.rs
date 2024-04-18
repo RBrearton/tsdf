@@ -19,7 +19,7 @@ impl Addr {
 }
 
 impl FileSerializable for Addr {
-    fn to_bytes(&self) -> Vec<u8> {
+    fn to_bin(&self) -> Vec<u8> {
         let bytes = self.loc.to_le_bytes().to_vec();
         bytes
     }
@@ -37,7 +37,7 @@ impl FileSerializable for Addr {
         serde_json::from_str(&json).unwrap()
     }
 
-    fn get_size_on_disk() -> u64 {
+    fn get_bin_size_on_disk() -> u64 {
         std::mem::size_of::<u64>() as u64
     }
 }
@@ -52,7 +52,7 @@ mod tests {
     #[test]
     fn test_addr_to_bytes() {
         let addr = Addr::new(123);
-        let bytes = addr.to_bytes();
+        let bytes = addr.to_bin();
         let addr2 = Addr::from_bytes(&bytes);
         assert_eq!(addr.get_loc(), addr2.get_loc());
     }
