@@ -10,6 +10,7 @@ pub(crate) mod has_name;
 pub(crate) mod link;
 pub(crate) mod locatable;
 pub(crate) mod tsdf_file_trait;
+pub(crate) mod tsdf_hashable;
 
 // Export the traits.
 pub(crate) use self::array_trait::ArrayTrait;
@@ -24,3 +25,4 @@ pub(crate) use self::has_name::HasName;
 pub(crate) use self::link::Link;
 pub(crate) use self::locatable::Locatable;
 pub(crate) use self::tsdf_file_trait::TsdfFileTrait;
+pub(crate) use self::tsdf_hashable::TsdfHashable;
