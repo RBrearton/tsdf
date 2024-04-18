@@ -20,6 +20,15 @@ pub(crate) trait FileSerializable {
     /// Constructs the object from a json string.
     fn from_json(json: String) -> Self;
 
+    /// Get's the size of the object on disk, according to the current
+    /// IoMetadata.
+    fn get_size_on_disk(&self, io_metadata: &IoMetadata) -> u64 {
+        match io_metadata.get_tsdf_metadata().get_file_format() {
+            FileFormat::Binary => Self::get_bin_size_on_disk(),
+            FileFormat::Text => self.get_json_size_on_disk(),
+        }
+    }
+
     /// Returns the size of the object once serialized to binary, in bytes.
     fn get_bin_size_on_disk() -> u64;
 
