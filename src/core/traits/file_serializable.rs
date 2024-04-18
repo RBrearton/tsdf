@@ -43,7 +43,7 @@ pub(crate) trait FileSerializable {
     }
 
     /// Reads the object from the file at the given location.
-    fn from_addr(addr: Addr, file: &mut File, io_metadata: &IoMetadata) -> Self
+    fn from_addr(addr: Addr, file: &File, io_metadata: &IoMetadata) -> Self
     where
         Self: Sized,
     {
