@@ -33,7 +33,7 @@ impl FileSerializable for TsdfHash {
         serde_json::to_string(self).unwrap()
     }
 
-    fn from_bytes(bytes: &[u8]) -> Self {
+    fn from_bin(bytes: &[u8]) -> Self {
         let hash_value = u64::from_le_bytes(bytes[0..8].try_into().unwrap());
         Self { hash_value }
     }
@@ -56,7 +56,7 @@ mod tests {
     fn test_tsdf_hash_to_bytes() {
         let hash = TsdfHash::new(&123);
         let bytes = hash.to_bin();
-        let hash2 = TsdfHash::from_bytes(&bytes);
+        let hash2 = TsdfHash::from_bin(&bytes);
         assert_eq!(hash, hash2);
     }
 

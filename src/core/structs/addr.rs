@@ -28,7 +28,7 @@ impl FileSerializable for Addr {
         serde_json::to_string(&self).unwrap()
     }
 
-    fn from_bytes(bytes: &[u8]) -> Self {
+    fn from_bin(bytes: &[u8]) -> Self {
         let loc = u64::from_le_bytes(bytes[0..8].try_into().unwrap());
         Self::new(loc)
     }
@@ -53,7 +53,7 @@ mod tests {
     fn test_addr_to_bytes() {
         let addr = Addr::new(123);
         let bytes = addr.to_bin();
-        let addr2 = Addr::from_bytes(&bytes);
+        let addr2 = Addr::from_bin(&bytes);
         assert_eq!(addr.get_loc(), addr2.get_loc());
     }
 

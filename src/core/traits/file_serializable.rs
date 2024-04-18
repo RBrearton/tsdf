@@ -15,7 +15,7 @@ pub(crate) trait FileSerializable {
     fn to_json(&self) -> String;
 
     /// Constructs the object from a byte array.
-    fn from_bytes(bytes: &[u8]) -> Self;
+    fn from_bin(bytes: &[u8]) -> Self;
 
     /// Constructs the object from a json string.
     fn from_json(json: String) -> Self;
@@ -64,7 +64,7 @@ pub(crate) trait FileSerializable {
         match io_metadata.get_tsdf_metadata().get_file_format() {
             FileFormat::Binary => {
                 // Convert the bytes to the object.
-                Self::from_bytes(bytes.as_slice())
+                Self::from_bin(bytes.as_slice())
             }
             FileFormat::Text => {
                 // Convert the bytes to a json string.
