@@ -41,7 +41,7 @@ where
 
     /// Get's the size of the object on disk, according to the current
     /// IoMetadata.
-    fn get_size_on_disk(&self, io_metadata: &IoMetadata) -> u64 {
+    fn get_size_on_disk(io_metadata: &IoMetadata) -> u64 {
         match io_metadata.get_tsdf_metadata().get_file_format() {
             FileFormat::Binary => Self::get_bin_size_on_disk(),
             FileFormat::Text => Self::get_json_size_on_disk(),
