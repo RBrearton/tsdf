@@ -8,8 +8,8 @@ use crate::core::{
 /// The FileSerializable trait is used to define objects that can be written to
 /// and read from files.
 pub(crate) trait FileSerializable {
-    /// Converts the object to a byte array.
-    fn to_bytes(&self) -> Vec<u8>;
+    /// Converts the object to a binary byte array.
+    fn to_bin(&self) -> Vec<u8>;
 
     /// Converts the object to a json string.
     fn to_json(&self) -> String;
@@ -20,8 +20,16 @@ pub(crate) trait FileSerializable {
     /// Constructs the object from a json string.
     fn from_json(json: String) -> Self;
 
-    /// Returns the size of the object once serialized, in bytes.
-    fn get_size_on_disk() -> u64;
+    /// Returns the size of the object once serialized to binary, in bytes.
+    fn get_bin_size_on_disk() -> u64;
+
+    /// Returns the size of the object once serialized to json, in bytes.
+    fn get_json_size_on_disk(&self) -> u64 {
+        // We aren't performance critical when using json, so we can just
+        // convert the object to json and get the length of the resulting
+        // string.
+        self.to_json().as_bytes().len() as u64
+    }
 
     /// Writes the object to the file at the given location.
     fn write(&self, addr: Addr, file: &File, io_metadata: &IoMetadata) {
@@ -30,7 +38,7 @@ pub(crate) trait FileSerializable {
         let bytes = match io_metadata.get_tsdf_metadata().get_file_format() {
             FileFormat::Binary => {
                 // Convert the object to bytes.
-                self.to_bytes()
+                self.to_bin()
             }
             FileFormat::Text => {
                 // Convert the object to a json string.
@@ -48,7 +56,7 @@ pub(crate) trait FileSerializable {
         Self: Sized,
     {
         // Read the bytes from the file at the given location.
-        let mut bytes = vec![0; Self::get_size_on_disk() as usize];
+        let mut bytes = vec![0; Self::get_bin_size_on_disk() as usize];
         file.read_at(&mut bytes, addr.get_loc()).unwrap();
 
         // Depending on whether we're in binary or text mode, we'll read the
