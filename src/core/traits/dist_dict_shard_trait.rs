@@ -18,4 +18,7 @@ pub(crate) trait DistDictShardTrait<TKey, TVal: FileSerializable>:
     /// Removes a key-value pair from the shard. Note that we take the hash of
     /// the key as an argument to avoid recomputing it.
     fn remove(&self, key: &TKey, hash: u64);
+
+    /// Returns the number of keys in the shard.
+    fn get_num_keys(&self) -> usize;
 }
