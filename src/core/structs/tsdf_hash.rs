@@ -29,7 +29,7 @@ impl TsdfHash {
 
     /// Works out what index this hash would be in a hash table of size
     ///`hash_table_size`.
-    pub(crate) fn get_hash_table_index(&self, hash_table_size: u64) -> u64 {
+    pub(crate) fn get_hash_table_idx(&self, hash_table_size: u64) -> u64 {
         self.hash_value % hash_table_size
     }
 }
