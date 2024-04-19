@@ -9,17 +9,17 @@ pub(crate) trait DistDictShardTrait<TKey: TsdfHashable, TVal: FileSerializable>:
     Link
 {
     /// Returns whether the shard contains the given hash.
-    fn contains(&self, hash: TsdfHash) -> bool;
+    fn contains(&self, hashed_key: &TsdfHash) -> bool;
 
     /// Adds a key-value pair to the shard. Note that we take the hash of the
     /// key as an argument to avoid recomputing it.
     /// You must first make sure that the shard doesn't already contain the
     /// key's hash, or this function will overwrite the existing value.
-    fn add(&self, key: &TKey, val: &TVal, hash: TsdfHash);
+    fn add(&self, hashed_key: &TsdfHash, val: TVal);
 
     /// Removes a key-value pair from the shard. Note that we take the hash of
     /// the key as an argument to avoid recomputing it.
-    fn remove(&self, key: &TKey, hash: TsdfHash);
+    fn remove(&self, hashed_key: &TsdfHash);
 
     /// Gets the location of the nth hash in the shard.
     fn get_hash_loc(&self, n: usize) -> Addr;
