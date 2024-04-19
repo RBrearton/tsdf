@@ -80,6 +80,17 @@ where
         file.write_all_at(&bytes, addr.get_loc()).unwrap();
     }
 
+    /// Removes the object from the file at the given location. Removal always
+    /// involves writing zeroes to the file at the given location.
+    fn remove(addr: Addr, file: &File, io_metadata: &IoMetadata) {
+        // Get the size of the object on disk.
+        let size = Self::get_size_on_disk(io_metadata);
+
+        // Write zeroes to the file at the given location.
+        let zeroes = vec![0; size as usize];
+        file.write_all_at(&zeroes, addr.get_loc()).unwrap();
+    }
+
     /// Reads the object from the file at the given location.
     fn from_addr(addr: Addr, file: &File, io_metadata: &IoMetadata) -> Self
     where
