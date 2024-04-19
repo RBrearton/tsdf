@@ -122,7 +122,7 @@ where
         (8 * self.link_number.pow(2)) as usize
     }
 
-    fn contains(&self, hash: TsdfHash) -> bool {
+    fn contains(&self, hashed_key: &TsdfHash) -> bool {
         // To check if the shard contains a hash, we need to calculate the hash
         // modulo the number of keys to work out the hash's position in the
         // shard.
@@ -130,7 +130,7 @@ where
             TKey,
             TVal,
         >>::get_num_keys(&self);
-        let n = hash.get_hash_value() % num_keys as u64;
+        let n = hashed_key.get_hash_value() % num_keys as u64;
 
         // Now we need to check if the hash at position n is equal to the hash
         // we're looking for.
@@ -139,14 +139,54 @@ where
             TVal,
         >>::get_hash(&self, n as usize);
 
-        hash == hash_n
+        *hashed_key == hash_n
     }
 
-    fn add(&self, key: &TKey, val: &TVal, hash: TsdfHash) {
-        todo!()
+    fn add(&self, hashed_key: &TsdfHash, val: TVal) {
+        // Get the location of the hash in the shard.
+        let num_keys = <DistDictShard<'_, '_> as DistDictShardTrait<
+            TKey,
+            TVal,
+        >>::get_num_keys(&self);
+        let hash_table_idx = hashed_key.get_hash_table_idx(num_keys as u64);
+
+        // Get the location of the hash and value in the shard.
+        let hash_loc = <DistDictShard<'_, '_> as DistDictShardTrait<
+            TKey,
+            TVal,
+        >>::get_hash_loc(&self, hash_table_idx as usize);
+
+        let val_loc = <DistDictShard<'_, '_> as DistDictShardTrait<
+            TKey,
+            TVal,
+        >>::get_val_loc(&self, hash_table_idx as usize);
+
+        // Write the hash and value to the file.
+        hashed_key.write(hash_loc, self.file, self.io_metadata);
+        val.write(val_loc, self.file, self.io_metadata);
     }
 
-    fn remove(&self, key: &TKey, hash: TsdfHash) {
-        todo!()
+    fn remove(&self, hashed_key: &TsdfHash) {
+        // Get the location of the hash in the shard.
+        let num_keys = <DistDictShard<'_, '_> as DistDictShardTrait<
+            TKey,
+            TVal,
+        >>::get_num_keys(&self);
+        let hash_table_idx = hashed_key.get_hash_table_idx(num_keys as u64);
+
+        // Get the location of the hash and value in the shard.
+        let hash_loc = <DistDictShard<'_, '_> as DistDictShardTrait<
+            TKey,
+            TVal,
+        >>::get_hash_loc(&self, hash_table_idx as usize);
+
+        let val_loc = <DistDictShard<'_, '_> as DistDictShardTrait<
+            TKey,
+            TVal,
+        >>::get_val_loc(&self, hash_table_idx as usize);
+
+        // Write the hash and value to the file.
+        TsdfHash::remove(hash_loc, self.file, self.io_metadata);
+        TVal::remove(val_loc, self.file, self.io_metadata);
     }
 }
