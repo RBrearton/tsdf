@@ -26,6 +26,12 @@ impl TsdfHash {
     pub(crate) fn get_hash_value(&self) -> u64 {
         self.hash_value
     }
+
+    /// Works out what index this hash would be in a hash table of size
+    ///`hash_table_size`.
+    pub(crate) fn get_hash_table_index(&self, hash_table_size: u64) -> u64 {
+        self.hash_value % hash_table_size
+    }
 }
 
 impl FileSerializable for TsdfHash {
