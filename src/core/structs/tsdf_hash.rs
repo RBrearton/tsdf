@@ -61,7 +61,7 @@ impl FileSerializable for TsdfHash {
         let hash = TsdfHash {
             hash_value: u64::MAX,
         };
-        let json = hash.to_json();
+        let json = serde_json::to_string(&hash).unwrap();
         json.len() as u64
     }
 }
