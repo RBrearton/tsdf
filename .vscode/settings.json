@@ -11,6 +11,7 @@
         "reimplementation",
         "rkyv",
         "swmr",
+        "tempfile",
         "tsdf",
         "vals"
     ]
