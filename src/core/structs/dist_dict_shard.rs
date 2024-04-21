@@ -157,7 +157,7 @@ mod tests {
     /// Test that we can add a key-value pair to the shard and then remove it.
     /// This test uses a text file format.
     #[test]
-    fn test_add_remove() {
+    fn test_add_remove_text() {
         // Define the io metadata.
         let io_metadata = IoMetadata::new(
             TsdfMetadata::new(
@@ -191,6 +191,55 @@ mod tests {
         // Add the key-value pair to the shard.
         shard.add(&hashed_key, val);
         print_file!(file);
+
+        // Check that the shard contains the key.
+        assert!(shard.contains(&hashed_key));
+
+        // Remove the key-value pair from the shard.
+        shard.remove(&hashed_key);
+        print_file!(file);
+
+        // Check that the shard no longer contains the key.
+        assert!(!shard.contains(&hashed_key));
+    }
+
+    /// Test that we can add a key-value pair to the shard and then remove it.
+    /// This test uses a binary file format.
+    #[test]
+    fn test_add_remove_binary() {
+        // Define the io metadata.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Binary,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDictShard.
+        let mut shard: DistDictShard<'_, '_, Addr> = DistDictShard {
+            next: LinkPtr::Null(Addr::new(0)),
+            link_number: 1,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            val: std::marker::PhantomData,
+            initialized: false,
+        };
+
+        // Initialize the shard.
+        shard.init();
+        print_file!(file);
+
+        // Create a key-value pair.
+        let key = "test_key".to_string();
+        let hashed_key = TsdfHash::new(&key);
+        let val = Addr::new(123);
+
+        // Add the key-value pair to the shard.
+        shard.add(&hashed_key, val);
+        // print_file!(file);
 
         // Check that the shard contains the key.
         assert!(shard.contains(&hashed_key));
