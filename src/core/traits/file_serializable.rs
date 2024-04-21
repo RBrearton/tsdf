@@ -15,6 +15,10 @@ where
     /// optimized for performance.
     fn to_bin(&self) -> Vec<u8>;
 
+    /// Creates a null representation of the object. This is written to the file
+    /// to represent the absence of the object.
+    fn null() -> Self;
+
     /// Converts the object to a json string. We provide a default
     /// implementation as this isn't performance critical and is only present
     /// for debugging purposes.
@@ -78,26 +82,33 @@ where
         };
 
         file.write_all_at(&bytes, addr.get_loc()).unwrap();
+
+        // Print the contents of the entire file.
+        let mut contents = vec![0; file.metadata().unwrap().len() as usize];
+        file.read_at(&mut contents, 0).unwrap();
+
+        // Convert the bytes to a string.
+        let contents = String::from_utf8(contents).unwrap();
+        println!("{:?}", contents);
     }
 
-    /// Removes the object from the file at the given location. Removal always
-    /// involves writing zeroes to the file at the given location.
+    /// Removes the object from the file at the given location. Removal is
+    /// implemented by writing a null representation of the object to the file.
     fn remove(addr: Addr, file: &File, io_metadata: &IoMetadata) {
-        // Get the size of the object on disk.
-        let size = Self::get_size_on_disk(io_metadata);
-
-        // Write zeroes to the file at the given location.
-        let zeroes = vec![0; size as usize];
-        file.write_all_at(&zeroes, addr.get_loc()).unwrap();
+        // To remove an object, we just add a null representation of the object
+        // to the file at the given location.
+        let null = Self::null();
+        null.write(addr, file, io_metadata);
     }
 
-    /// Reads the object from the file at the given location.
+    /// Reads the object from the file at the given location. Returns None if
+    /// the object is null.
     fn from_addr(addr: Addr, file: &File, io_metadata: &IoMetadata) -> Self
     where
         Self: Sized,
     {
         // Read the bytes from the file at the given location.
-        let mut bytes = vec![0; Self::get_bin_size_on_disk() as usize];
+        let mut bytes = vec![0; Self::get_size_on_disk(io_metadata) as usize];
         file.read_at(&mut bytes, addr.get_loc()).unwrap();
 
         // Depending on whether we're in binary or text mode, we'll read the
