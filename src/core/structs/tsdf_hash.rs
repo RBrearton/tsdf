@@ -54,10 +54,6 @@ impl FileSerializable for TsdfHash {
         Self { hash_value }
     }
 
-    fn from_json(json: String) -> Self {
-        serde_json::from_str(&json).unwrap()
-    }
-
     fn get_bin_size_on_disk() -> u64 {
         std::mem::size_of::<u64>() as u64
     }

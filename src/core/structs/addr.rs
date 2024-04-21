@@ -31,17 +31,9 @@ impl FileSerializable for Addr {
         bytes
     }
 
-    fn to_json(&self) -> String {
-        serde_json::to_string(&self).unwrap()
-    }
-
     fn from_bin(bytes: &[u8]) -> Self {
         let loc = u64::from_le_bytes(bytes[0..8].try_into().unwrap());
         Self::new(loc)
-    }
-
-    fn from_json(json: String) -> Self {
-        serde_json::from_str(&json).unwrap()
     }
 
     fn get_bin_size_on_disk() -> u64 {

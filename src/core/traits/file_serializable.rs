@@ -41,7 +41,9 @@ where
     fn from_bin(bytes: &[u8]) -> Self;
 
     /// Constructs the object from a json string.
-    fn from_json(json: String) -> Self;
+    fn from_json(json: String) -> Self {
+        serde_json::from_str(&json).unwrap()
+    }
 
     /// Get's the size of the object on disk, according to the current
     /// IoMetadata.
