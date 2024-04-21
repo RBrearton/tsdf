@@ -143,6 +143,17 @@ mod tests {
     use super::super::TsdfHash;
     use super::*;
 
+    macro_rules! print_file {
+        ($file:expr) => {{
+            let mut file_clone = $file.try_clone().unwrap();
+            let mut file_contents = String::new();
+            file_clone.read_to_string(&mut file_contents).unwrap();
+            file_clone.seek(std::io::SeekFrom::Start(0)).unwrap();
+            println!("{}", file_contents);
+            println!("\n\n\n\n\n\n\n\n");
+        }};
+    }
+
     /// Test that we can add a key-value pair to the shard and then remove it.
     /// This test uses a text file format.
     #[test]
@@ -168,16 +179,9 @@ mod tests {
             initialized: false,
         };
 
-        // Now get the entire file as a string.
-        let mut file_clone = file.try_clone().unwrap();
-
         // Initialize the shard.
         shard.init();
-        let mut file_contents = String::new();
-        file_clone.read_to_string(&mut file_contents).unwrap();
-        file_clone.seek(std::io::SeekFrom::Start(0)).unwrap();
-        println!("{}", file_contents);
-        println!("\n\n\n\n\n\n\n\n");
+        print_file!(file);
 
         // Create a key-value pair.
         let key = "test_key".to_string();
@@ -186,23 +190,14 @@ mod tests {
 
         // Add the key-value pair to the shard.
         shard.add(&hashed_key, val);
-        let mut file_contents = String::new();
-        file_clone.read_to_string(&mut file_contents).unwrap();
-        file_clone.seek(std::io::SeekFrom::Start(0)).unwrap();
-        println!("{}", file_contents);
-        println!("\n\n\n\n\n\n\n\n");
+        print_file!(file);
 
         // Check that the shard contains the key.
         assert!(shard.contains(&hashed_key));
 
         // Remove the key-value pair from the shard.
-        // TODO: working here.
         shard.remove(&hashed_key);
-        let mut file_contents = String::new();
-        file_clone.read_to_string(&mut file_contents).unwrap();
-        file_clone.seek(std::io::SeekFrom::Start(0)).unwrap();
-        println!("{}", file_contents);
-        println!("\n\n\n\n\n\n\n\n");
+        print_file!(file);
 
         // Check that the shard no longer contains the key.
         assert!(!shard.contains(&hashed_key));
