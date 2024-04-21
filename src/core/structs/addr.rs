@@ -18,7 +18,14 @@ impl Addr {
     }
 }
 
+/// The value that we use to represent a null Addr.
+const NULL_LOC: u64 = 0;
+
 impl FileSerializable for Addr {
+    fn null() -> Self {
+        Self { loc: NULL_LOC }
+    }
+
     fn to_bin(&self) -> Vec<u8> {
         let bytes = self.loc.to_le_bytes().to_vec();
         bytes

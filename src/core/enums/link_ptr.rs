@@ -23,6 +23,10 @@ impl LinkPtr {
 }
 
 impl FileSerializable for LinkPtr {
+    fn null() -> Self {
+        LinkPtr::Null(Addr::null())
+    }
+
     fn to_bin(&self) -> Vec<u8> {
         self.to_addr().to_bin()
     }

@@ -9,6 +9,9 @@ pub(crate) struct TsdfHash {
     hash_value: u64,
 }
 
+/// The value that we use to represent a null TsdfHash.
+const NULL_HASH: u64 = 0;
+
 impl TsdfHash {
     /// Creates a new TsdfHash from a hashable value.
     pub(crate) fn new<T: std::hash::Hash>(hashable: &T) -> Self {
@@ -35,6 +38,12 @@ impl TsdfHash {
 }
 
 impl FileSerializable for TsdfHash {
+    fn null() -> Self {
+        Self {
+            hash_value: NULL_HASH,
+        }
+    }
+
     fn to_bin(&self) -> Vec<u8> {
         let bytes = self.hash_value.to_le_bytes().to_vec();
         bytes
