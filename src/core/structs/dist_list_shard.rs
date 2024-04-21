@@ -17,7 +17,7 @@ pub(crate) struct DistListShard<'a, 'b> {
 }
 
 impl Locatable for DistListShard<'_, '_> {
-    fn get_loc(&self) -> &Addr {
+    fn get_addr(&self) -> &Addr {
         &self.loc
     }
 }
