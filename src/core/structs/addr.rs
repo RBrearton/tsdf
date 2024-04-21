@@ -46,7 +46,7 @@ impl FileSerializable for Addr {
         // is far from optimized, but the whole point of the json representation
         // is to be debug-friendly, not performant.
         let addr = Addr { loc: u64::MAX };
-        let json = addr.to_json();
+        let json = serde_json::to_string(&addr).unwrap();
         json.len() as u64
     }
 }
