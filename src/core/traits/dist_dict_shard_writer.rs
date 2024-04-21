@@ -37,6 +37,9 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
                 .write_at(&[0], is_written_loc.get_loc())
                 .unwrap();
         }
+
+        // Now that the shard is initialized, set the initialized flag to true.
+        self.set_initialization_state(true);
     }
 
     /// Checks whether the DistDictShardWriter has been initialized.
