@@ -8,9 +8,12 @@ use super::{FileSerializable, Link};
 /// The DistDictShard is part of a distributed dictionary. A DistDict is made up
 /// of multiple DistDictShards, each of which is responsible for a subset of the
 /// keys.
-pub(crate) trait DistDictShardTrait<TVal: FileSerializable>:
+pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
     Link
 {
+    /// Returns the number of keys in the shard.
+    fn get_num_keys(&self) -> usize;
+
     /// Returns whether the shard contains the given hash.
     fn contains(&self, hashed_key: &TsdfHash) -> bool {
         // To check if the shard contains a hash, we need to calculate the hash
@@ -24,42 +27,6 @@ pub(crate) trait DistDictShardTrait<TVal: FileSerializable>:
         let hash_n = self.get_hash(n as usize);
 
         *hashed_key == hash_n
-    }
-
-    /// Adds a key-value pair to the shard. Note that we take the hash of the
-    /// key as an argument to avoid recomputing it.
-    /// You must first make sure that the shard doesn't already contain the
-    /// key's hash, or this function will overwrite the existing value.
-    fn add(&self, hashed_key: &TsdfHash, val: TVal) {
-        // Get the location of the hash in the shard.
-        let num_keys = self.get_num_keys();
-        let hash_table_idx = hashed_key.get_hash_table_idx(num_keys as u64);
-
-        // Get the location of the hash and value in the shard.
-        let hash_loc = self.get_hash_loc(hash_table_idx as usize);
-
-        let val_loc = self.get_val_loc(hash_table_idx as usize);
-
-        // Write the hash and value to the file.
-        hashed_key.write(hash_loc, self.get_file(), self.get_io_metadata());
-        val.write(val_loc, self.get_file(), self.get_io_metadata());
-    }
-
-    /// Removes a key-value pair from the shard. Note that we take the hash of
-    /// the key as an argument to avoid recomputing it.
-    fn remove(&self, hashed_key: &TsdfHash) {
-        // Get the location of the hash in the shard.
-        let num_keys = self.get_num_keys();
-        let hash_table_idx = hashed_key.get_hash_table_idx(num_keys as u64);
-
-        // Get the location of the hash and value in the shard.
-        let hash_loc = self.get_hash_loc(hash_table_idx as usize);
-
-        let val_loc = self.get_val_loc(hash_table_idx as usize);
-
-        // Write the hash and value to the file.
-        TsdfHash::remove(hash_loc, self.get_file(), self.get_io_metadata());
-        TVal::remove(val_loc, self.get_file(), self.get_io_metadata());
     }
 
     /// Gets the location of the nth hash in the shard.
@@ -116,7 +83,4 @@ pub(crate) trait DistDictShardTrait<TVal: FileSerializable>:
             self.get_io_metadata(),
         )
     }
-
-    /// Returns the number of keys in the shard.
-    fn get_num_keys(&self) -> usize;
 }

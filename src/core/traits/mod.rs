@@ -1,6 +1,7 @@
 pub(crate) mod array_trait;
 pub(crate) mod dir_trait;
-pub(crate) mod dist_dict_shard_trait;
+pub(crate) mod dist_dict_shard_reader;
+pub(crate) mod dist_dict_shard_writer;
 pub(crate) mod dist_dict_trait;
 pub(crate) mod dist_list_shard_trait;
 pub(crate) mod dist_list_trait;
@@ -15,7 +16,8 @@ pub(crate) mod tsdf_hashable;
 // Export the traits.
 pub(crate) use self::array_trait::ArrayTrait;
 pub(crate) use self::dir_trait::DirTrait;
-pub(crate) use self::dist_dict_shard_trait::DistDictShardTrait;
+pub(crate) use self::dist_dict_shard_reader::DistDictShardReader;
+pub(crate) use self::dist_dict_shard_writer::DistDictShardWriter;
 pub(crate) use self::dist_dict_trait::DistDictTrait;
 pub(crate) use self::dist_list_shard_trait::DistListShardTrait;
 pub(crate) use self::dist_list_trait::DistListTrait;
