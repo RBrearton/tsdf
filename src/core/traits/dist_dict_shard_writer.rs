@@ -1,3 +1,5 @@
+use std::os::unix::fs::FileExt;
+
 use crate::core::structs::TsdfHash;
 
 use super::{DistDictShardReader, FileSerializable};
@@ -9,10 +11,39 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
 {
     /// Initializes the DistDictShardWriter. This function should be called
     /// before any other functions are called on the DistDictShardWriter.
-    fn init(&self) -> bool;
+    fn init(&mut self) {
+        // Iterate from 0 to the number of keys in the shard.
+        for i in 0..self.get_num_keys() {
+            // Get the location of the hash and value in the shard.
+            let hash_loc = self.get_hash_addr(i);
+            let val_loc = self.get_val_addr(i);
+            let is_written_loc = self.get_is_hash_written_addr(i);
+
+            // Write a null hash and null value to the file.
+            TsdfHash::null().write(
+                hash_loc,
+                self.get_file(),
+                self.get_io_metadata(),
+            );
+            TVal::null().write(
+                val_loc,
+                self.get_file(),
+                self.get_io_metadata(),
+            );
+
+            // Finally, write a false boolean to the file to indicate that the
+            // hash and value are not yet written.
+            self.get_file()
+                .write_at(&[0], is_written_loc.get_loc())
+                .unwrap();
+        }
+    }
 
     /// Checks whether the DistDictShardWriter has been initialized.
     fn is_initialized(&self) -> bool;
+
+    /// Sets the initialized flag.
+    fn set_initialization_state(&mut self, initialized: bool);
 
     /// Removes a key-value pair from the shard. Note that we take the hash of
     /// the key as an argument to avoid recomputing it.
@@ -27,9 +58,9 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
         let hash_table_idx = hashed_key.get_hash_table_idx(num_keys as u64);
 
         // Get the location of the hash and value in the shard.
-        let hash_loc = self.get_hash_loc(hash_table_idx as usize);
+        let hash_loc = self.get_hash_addr(hash_table_idx as usize);
 
-        let val_loc = self.get_val_loc(hash_table_idx as usize);
+        let val_loc = self.get_val_addr(hash_table_idx as usize);
 
         // Write the hash and value to the file.
         TsdfHash::remove(hash_loc, self.get_file(), self.get_io_metadata());
@@ -40,7 +71,7 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
     /// key as an argument to avoid recomputing it.
     /// You must first make sure that the shard doesn't already contain the
     /// key's hash, or this function will overwrite the existing value.
-    fn add(&self, hashed_key: &TsdfHash, val: TVal) {
+    fn add(&mut self, hashed_key: &TsdfHash, val: TVal) {
         if !self.is_initialized() {
             // If the shard hasn't been initialized, we must initialize it
             // before adding anything.
@@ -52,9 +83,9 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
         let hash_table_idx = hashed_key.get_hash_table_idx(num_keys as u64);
 
         // Get the location of the hash and value in the shard.
-        let hash_loc = self.get_hash_loc(hash_table_idx as usize);
+        let hash_loc = self.get_hash_addr(hash_table_idx as usize);
 
-        let val_loc = self.get_val_loc(hash_table_idx as usize);
+        let val_loc = self.get_val_addr(hash_table_idx as usize);
 
         // Write the hash and value to the file.
         hashed_key.write(hash_loc, self.get_file(), self.get_io_metadata());
