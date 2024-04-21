@@ -58,9 +58,16 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
         let hash_table_idx = hashed_key.get_hash_table_idx(num_keys as u64);
 
         // Get the location of the hash and value in the shard.
+        let is_written_addr =
+            self.get_is_hash_written_addr(hash_table_idx as usize);
         let hash_loc = self.get_hash_addr(hash_table_idx as usize);
 
         let val_loc = self.get_val_addr(hash_table_idx as usize);
+
+        // Set the is_written boolean to false.
+        self.get_file()
+            .write_at(&[0], is_written_addr.get_loc())
+            .unwrap();
 
         // Write the hash and value to the file.
         TsdfHash::remove(hash_loc, self.get_file(), self.get_io_metadata());
@@ -83,12 +90,23 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
         let hash_table_idx = hashed_key.get_hash_table_idx(num_keys as u64);
 
         // Get the location of the hash and value in the shard.
+        let is_written_addr =
+            self.get_is_hash_written_addr(hash_table_idx as usize);
         let hash_loc = self.get_hash_addr(hash_table_idx as usize);
-
         let val_loc = self.get_val_addr(hash_table_idx as usize);
 
         // Write the hash and value to the file.
         hashed_key.write(hash_loc, self.get_file(), self.get_io_metadata());
         val.write(val_loc, self.get_file(), self.get_io_metadata());
+
+        // Finally, write a true boolean to the file to indicate that the hash
+        // and value are written. This order of writing is absolutely
+        // fundamental to the whole file format, as boolean writes are atomic.
+        // We can guarantee that, for any number of readers, the readers will
+        // either see the hash and value as written or not written, but never
+        // partially written.
+        self.get_file()
+            .write_at(&[1], is_written_addr.get_loc())
+            .unwrap();
     }
 }
