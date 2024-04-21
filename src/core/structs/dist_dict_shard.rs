@@ -1,10 +1,10 @@
 use std::fs::File;
 use std::marker::PhantomData;
 
-use crate::core::traits::Locatable;
+use crate::core::traits::{DistDictShardWriter, Locatable};
 use crate::core::{
     enums::LinkPtr,
-    traits::{DistDictShardTrait, FileSerializable, Link},
+    traits::{DistDictShardReader, FileSerializable, Link},
 };
 
 use super::{Addr, IoMetadata};
@@ -59,6 +59,9 @@ where
 
     /// A reference to the file that the shard is stored in.
     file: &'b File,
+
+    /// Whether the shard has been initialized.
+    initialized: bool,
 }
 
 impl<TVal> DistDictShard<'_, '_, TVal>
@@ -73,7 +76,7 @@ impl<TVal> Locatable for DistDictShard<'_, '_, TVal>
 where
     TVal: FileSerializable,
 {
-    fn get_loc(&self) -> &Addr {
+    fn get_addr(&self) -> &Addr {
         &self.loc
     }
 }
@@ -101,7 +104,7 @@ where
 }
 
 // Implement the DistDictShardTrait for DistDictShard.
-impl<TVal> DistDictShardTrait<TVal> for DistDictShard<'_, '_, TVal>
+impl<TVal> DistDictShardReader<TVal> for DistDictShard<'_, '_, TVal>
 where
     TVal: FileSerializable,
 {
@@ -112,8 +115,24 @@ where
     }
 }
 
+// Implement the DistDictShardWriter trait for DistDictShard.
+impl<TVal> DistDictShardWriter<TVal> for DistDictShard<'_, '_, TVal>
+where
+    TVal: FileSerializable,
+{
+    fn set_initialization_state(&mut self, initialized: bool) {
+        self.initialized = initialized;
+    }
+
+    fn is_initialized(&self) -> bool {
+        self.initialized
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::io::{Read, Seek};
+
     use tempfile::tempfile;
 
     use crate::core::{
@@ -138,14 +157,27 @@ mod tests {
         );
         let file = tempfile().unwrap();
 
-        let shard: DistDictShard<'_, '_, Addr> = DistDictShard {
+        // Make a DistDictShard.
+        let mut shard: DistDictShard<'_, '_, Addr> = DistDictShard {
             next: LinkPtr::Null(Addr::new(0)),
             link_number: 1,
             loc: Addr::new(0),
             io_metadata: &io_metadata,
             file: &file,
             val: std::marker::PhantomData,
+            initialized: false,
         };
+
+        // Now get the entire file as a string.
+        let mut file_clone = file.try_clone().unwrap();
+
+        // Initialize the shard.
+        shard.init();
+        let mut file_contents = String::new();
+        file_clone.read_to_string(&mut file_contents).unwrap();
+        file_clone.seek(std::io::SeekFrom::Start(0)).unwrap();
+        println!("{}", file_contents);
+        println!("\n\n\n\n\n\n\n\n");
 
         // Create a key-value pair.
         let key = "test_key".to_string();
@@ -154,12 +186,23 @@ mod tests {
 
         // Add the key-value pair to the shard.
         shard.add(&hashed_key, val);
+        let mut file_contents = String::new();
+        file_clone.read_to_string(&mut file_contents).unwrap();
+        file_clone.seek(std::io::SeekFrom::Start(0)).unwrap();
+        println!("{}", file_contents);
+        println!("\n\n\n\n\n\n\n\n");
 
         // Check that the shard contains the key.
         assert!(shard.contains(&hashed_key));
 
         // Remove the key-value pair from the shard.
+        // TODO: working here.
         shard.remove(&hashed_key);
+        let mut file_contents = String::new();
+        file_clone.read_to_string(&mut file_contents).unwrap();
+        file_clone.seek(std::io::SeekFrom::Start(0)).unwrap();
+        println!("{}", file_contents);
+        println!("\n\n\n\n\n\n\n\n");
 
         // Check that the shard no longer contains the key.
         assert!(!shard.contains(&hashed_key));
