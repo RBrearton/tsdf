@@ -82,14 +82,6 @@ where
         };
 
         file.write_all_at(&bytes, addr.get_loc()).unwrap();
-
-        // Print the contents of the entire file.
-        let mut contents = vec![0; file.metadata().unwrap().len() as usize];
-        file.read_at(&mut contents, 0).unwrap();
-
-        // Convert the bytes to a string.
-        let contents = String::from_utf8(contents).unwrap();
-        println!("{:?}", contents);
     }
 
     /// Removes the object from the file at the given location. Removal is
