@@ -103,6 +103,11 @@ pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
 
     /// Gets the hash of the nth key in the shard.
     fn get_hash(&self, n: usize) -> TsdfHash {
+        // If the hash has not been written, we return a null hash.
+        if !self.is_hash_written(n) {
+            return TsdfHash::null();
+        }
+
         // Since TsdfHash is guaranteed to be FileSerializable, we can use the
         // from_addr method to read the hash from the file.
         TsdfHash::from_addr(
@@ -114,6 +119,11 @@ pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
 
     /// Gets the value of the nth hash in the shard.
     fn get_val(&self, n: usize) -> TVal {
+        // If the hash has not been written, we return a null value.
+        if !self.is_hash_written(n) {
+            return TVal::null();
+        }
+
         // Since TVal is guaranteed to be FileSerializable, we can use the
         // from_addr method to read the value from the file.
         TVal::from_addr(
