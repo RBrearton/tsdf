@@ -1,3 +1,5 @@
+use std::os::unix::fs::FileExt;
+
 use crate::core::{
     enums::LinkPtr,
     structs::{Addr, TsdfHash},
@@ -30,10 +32,10 @@ pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
     }
 
     /// Gets the location of the nth hash in the shard.
-    fn get_hash_loc(&self, n: usize) -> Addr {
+    fn get_hash_addr(&self, n: usize) -> Addr {
         // The location of the nth hash is the location of the shard plus the
-        // size of the next LinkPtr, plus the size of each hash and value up to
-        // the nth hash.
+        // size of the next LinkPtr, plus the size of each hash, value and
+        // is_written boolean up to the nth hash.
         let size_of_next = LinkPtr::get_size_on_disk(self.get_io_metadata());
 
         // The size of each hash is the size of a TsdfHash.
@@ -42,24 +44,61 @@ pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
         // The size of each value is the size of a T.
         let size_of_val = TVal::get_size_on_disk(self.get_io_metadata());
 
-        // The location of the nth hash is the location of the shard plus the
-        // size of the next LinkPtr, plus the size of each hash and value up to
-        // the nth hash.
-        let loc = self.get_loc().get_loc()
-            + size_of_next
-            + (size_of_hash + size_of_val) * n as u64;
+        // The size of the boolean is 1 byte.
+        let size_of_bool = 1;
 
-        Addr::new(loc)
+        // Determine the location of the nth hash.
+        let addr = self.get_addr().get_loc()
+            + size_of_next
+            + (size_of_hash + size_of_val + size_of_bool) * n as u64;
+
+        Addr::new(addr)
     }
 
     /// Gets the location of the nth value in the shard.
-    fn get_val_loc(&self, n: usize) -> Addr {
+    fn get_val_addr(&self, n: usize) -> Addr {
         // The location of the nth value is the location of the nth hash plus
         // the size of the hash.
         let size_of_hash = TsdfHash::get_size_on_disk(self.get_io_metadata());
-        let loc = self.get_hash_loc(n).get_loc() + size_of_hash;
+        let addr = self.get_hash_addr(n).get_loc() + size_of_hash;
 
-        Addr::new(loc)
+        Addr::new(addr)
+    }
+
+    /// Gets the location of the nth is_hash_written boolean in the shard.
+    fn get_is_hash_written_addr(&self, n: usize) -> Addr {
+        // The location of the nth is_hash_written boolean is the location of
+        // the nth value plus the size of the value.
+        let size_of_val = TVal::get_size_on_disk(self.get_io_metadata());
+        let addr = self.get_val_addr(n).get_loc() + size_of_val;
+
+        Addr::new(addr)
+    }
+
+    /// Gets the boolean that says whether the key value pair at the given index
+    /// has been written.
+    ///
+    /// The reason for the is_hash_written field is related to atomicity.
+    /// Imagine that we have a hash table on disk, and we want to add a new hash
+    /// to it. If we have multiple threads reading the hash table when it is
+    /// written, one thread could read the hash table before when not all of the
+    /// hash value has been written (e.g., in binary mode, maybe only 2/8 bytes
+    /// have been written). This would cause the thread to read a hash value
+    /// that is not valid. To avoid this, we write the hash value in two steps:
+    /// first, we write the hash value's 8 bytes. Then after that, we write a
+    /// boolean flag that says that the hash value has been written. This way,
+    /// before reading the hash value, we can check the boolean flag to see if
+    /// the hash value has been written. Because binary boolean writes are
+    /// atomic, we can be sure that if the boolean flag is true, the hash value
+    /// is valid.
+    fn is_hash_written(&self, n: usize) -> bool {
+        // Read the boolean from the file.
+        let loc = self.get_is_hash_written_addr(n).get_loc();
+        let mut bytes = vec![0; 1];
+        self.get_file().read_at(&mut bytes, loc).unwrap();
+
+        // Convert the bytes to a boolean.
+        bytes[0] == 1
     }
 
     /// Gets the hash of the nth key in the shard.
@@ -67,7 +106,7 @@ pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
         // Since TsdfHash is guaranteed to be FileSerializable, we can use the
         // from_addr method to read the hash from the file.
         TsdfHash::from_addr(
-            self.get_hash_loc(n),
+            self.get_hash_addr(n),
             self.get_file(),
             self.get_io_metadata(),
         )
@@ -78,7 +117,7 @@ pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
         // Since TVal is guaranteed to be FileSerializable, we can use the
         // from_addr method to read the value from the file.
         TVal::from_addr(
-            self.get_val_loc(n),
+            self.get_val_addr(n),
             self.get_file(),
             self.get_io_metadata(),
         )
