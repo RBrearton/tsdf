@@ -1,6 +1,6 @@
 use std::os::unix::fs::FileExt;
 
-use crate::core::structs::TsdfHash;
+use crate::core::{enums::LinkPtr, structs::TsdfHash};
 
 use super::{DistDictShardReader, FileSerializable};
 
@@ -41,6 +41,9 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
         // Now that the shard is initialized, set the initialized flag to true.
         self.set_initialization_state(true);
     }
+
+    /// Sets the next pointer of the shard to the given address.
+    fn set_next(&mut self, next: LinkPtr);
 
     /// Checks whether the DistDictShardWriter has been initialized.
     fn is_initialized(&self) -> bool;

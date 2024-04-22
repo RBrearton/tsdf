@@ -68,7 +68,22 @@ impl<TVal> DistDictShard<'_, '_, TVal>
 where
     TVal: FileSerializable,
 {
-    //
+    pub(crate) fn new<'a, 'b>(
+        link_number: i32,
+        loc: Addr,
+        io_metadata: &'a IoMetadata,
+        file: &'b File,
+    ) -> DistDictShard<'a, 'b, TVal> {
+        DistDictShard {
+            val: PhantomData::<TVal>,
+            next: LinkPtr::Null(Addr::new(0)),
+            link_number,
+            loc,
+            io_metadata,
+            file,
+            initialized: false,
+        }
+    }
 }
 
 // Implement the locatable trait for DistDictShard.
@@ -126,6 +141,10 @@ where
 
     fn is_initialized(&self) -> bool {
         self.initialized
+    }
+
+    fn set_next(&mut self, next: LinkPtr) {
+        self.next = next;
     }
 }
 
