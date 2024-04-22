@@ -189,7 +189,7 @@ mod tests {
         let val = Addr::new(123);
 
         // Add the key-value pair to the shard.
-        shard.add(&hashed_key, val);
+        shard.add(&hashed_key, &val);
         print_file!(file);
 
         // Check that the shard contains the key.
@@ -238,7 +238,7 @@ mod tests {
         let val = Addr::new(123);
 
         // Add the key-value pair to the shard.
-        shard.add(&hashed_key, val);
+        shard.add(&hashed_key, &val);
         // print_file!(file);
 
         // Check that the shard contains the key.
