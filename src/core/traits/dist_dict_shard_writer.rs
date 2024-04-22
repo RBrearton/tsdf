@@ -81,7 +81,7 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
     /// key as an argument to avoid recomputing it.
     /// You must first make sure that the shard doesn't already contain the
     /// key's hash, or this function will overwrite the existing value.
-    fn add(&mut self, hashed_key: &TsdfHash, val: TVal) {
+    fn add(&mut self, hashed_key: &TsdfHash, val: &TVal) {
         if !self.is_initialized() {
             // If the shard hasn't been initialized, we must initialize it
             // before adding anything.
