@@ -34,8 +34,9 @@ pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
     /// Gets the location of the nth hash in the shard.
     fn get_hash_addr(&self, n: usize) -> Addr {
         // The location of the nth hash is the location of the shard plus the
-        // size of the next LinkPtr, plus the size of each hash, value and
-        // is_written boolean up to the nth hash.
+        // size of the is_next_written boolean, plus the size of the next
+        // LinkPtr, plus the size of each hash, value and is_hash_written
+        // boolean up to the nth hash.
         let size_of_next = LinkPtr::get_size_on_disk(self.get_io_metadata());
 
         // The size of each hash is the size of a TsdfHash.
@@ -49,8 +50,28 @@ pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
 
         // Determine the location of the nth hash.
         let addr = self.get_addr().get_loc()
-            + size_of_next
+            + size_of_bool // is_next_written
+            + size_of_next // next
             + (size_of_hash + size_of_val + size_of_bool) * n as u64;
+
+        Addr::new(addr)
+    }
+
+    /// Gets the location of the is_next_written boolean in the shard.
+    fn get_is_next_written_addr(&self) -> Addr {
+        // The location of the is_next_written boolean is the location of the
+        // shard plus the size of the is_next_written boolean.
+        let addr = self.get_addr().get_loc();
+
+        Addr::new(addr)
+    }
+
+    /// Gets the location of the next LinkPtr in the shard.
+    fn get_next_addr(&self) -> Addr {
+        // The location of the next LinkPtr is the location of the shard plus
+        // the size of the is_next_written boolean.
+        let size_of_bool = 1;
+        let addr = self.get_is_next_written_addr().get_loc() + size_of_bool;
 
         Addr::new(addr)
     }
@@ -99,6 +120,35 @@ pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
 
         // Convert the bytes to a boolean.
         bytes[0] == 1
+    }
+
+    /// Gets the boolean that says whether the next pointer has been written.
+    /// This is similar to the is_hash_written boolean, but for the next
+    /// pointer.
+    fn is_next_written(&self) -> bool {
+        // Read the boolean from the file.
+        let loc = self.get_is_next_written_addr().get_loc();
+        let mut bytes = vec![0; 1];
+        self.get_file().read_at(&mut bytes, loc).unwrap();
+
+        // Convert the bytes to a boolean.
+        bytes[0] == 1
+    }
+
+    /// Gets the next pointer in the shard.
+    fn get_next_ptr(&self) -> LinkPtr {
+        // If the next pointer has not been written, we return a null pointer.
+        if !self.is_next_written() {
+            return LinkPtr::Null(Addr::null());
+        }
+
+        // Since LinkPtr is guaranteed to be FileSerializable, we can use the
+        // from_addr method to read the next pointer from the file.
+        LinkPtr::from_addr(
+            self.get_next_addr(),
+            self.get_file(),
+            self.get_io_metadata(),
+        )
     }
 
     /// Gets the hash of the nth key in the shard.

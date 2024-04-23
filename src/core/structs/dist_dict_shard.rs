@@ -45,9 +45,6 @@ where
     /// work out which implementation of the generic DistDictShardTrait to use.
     val: PhantomData<TVal>,
 
-    /// The LinkPtr to the next shard.
-    next: LinkPtr,
-
     /// The link number of this shard.
     link_number: i32,
 
@@ -76,7 +73,6 @@ where
     ) -> DistDictShard<'a, 'b, TVal> {
         DistDictShard {
             val: PhantomData::<TVal>,
-            next: LinkPtr::Null(Addr::new(0)),
             link_number,
             loc,
             io_metadata,
@@ -97,12 +93,13 @@ where
 }
 
 // Implement the Link trait for DistDictShard.
-impl<TVal> Link for DistDictShard<'_, '_, TVal>
+impl<'a, 'b, TVal> Link for DistDictShard<'a, 'b, TVal>
 where
     TVal: FileSerializable,
+    DistDictShard<'a, 'b, TVal>: DistDictShardReader<TVal>,
 {
     fn get_next(&self) -> &LinkPtr {
-        &self.next
+        &self.get_next_ptr()
     }
 
     fn get_link_number(&self) -> i32 {
@@ -141,10 +138,6 @@ where
 
     fn is_initialized(&self) -> bool {
         self.initialized
-    }
-
-    fn set_next(&mut self, next: LinkPtr) {
-        self.next = next;
     }
 }
 
@@ -189,7 +182,6 @@ mod tests {
 
         // Make a DistDictShard.
         let mut shard: DistDictShard<'_, '_, Addr> = DistDictShard {
-            next: LinkPtr::Null(Addr::new(0)),
             link_number: 1,
             loc: Addr::new(0),
             io_metadata: &io_metadata,
@@ -238,7 +230,6 @@ mod tests {
 
         // Make a DistDictShard.
         let mut shard: DistDictShard<'_, '_, Addr> = DistDictShard {
-            next: LinkPtr::Null(Addr::new(0)),
             link_number: 1,
             loc: Addr::new(0),
             io_metadata: &io_metadata,

@@ -43,7 +43,16 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
     }
 
     /// Sets the next pointer of the shard to the given address.
-    fn set_next(&mut self, next: &LinkPtr);
+    fn set_next(&mut self, next: &LinkPtr) {
+        let next_loc = self.get_next_addr();
+        next.write(next_loc, self.get_file(), self.get_io_metadata());
+
+        // Now that the next pointer has been set, we can set the
+        // is_next_written boolean to true.
+        self.get_file()
+            .write_at(&[1], self.get_is_next_written_addr().get_loc())
+            .unwrap();
+    }
 
     /// Checks whether the DistDictShardWriter has been initialized.
     fn is_initialized(&self) -> bool;
