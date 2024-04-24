@@ -107,8 +107,8 @@ where
     TVal: FileSerializable,
     DistDictShard<'a, 'b, TVal>: DistDictShardReader<TVal>,
 {
-    fn get_next(&self) -> &LinkPtr {
-        self.get_next_wtr()
+    fn get_next(&self) -> LinkPtr {
+        self.get_next_ptr()
     }
 
     fn get_link_number(&self) -> i32 {
