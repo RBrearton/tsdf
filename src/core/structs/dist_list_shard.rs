@@ -20,6 +20,14 @@ impl Locatable for DistListShard<'_, '_> {
     fn get_addr(&self) -> &Addr {
         &self.loc
     }
+
+    fn get_file(&self) -> &File {
+        self.file
+    }
+
+    fn get_io_metadata(&self) -> &IoMetadata {
+        self.metadata
+    }
 }
 
 impl Link for DistListShard<'_, '_> {
@@ -29,13 +37,5 @@ impl Link for DistListShard<'_, '_> {
 
     fn get_link_number(&self) -> i32 {
         self.link_number
-    }
-
-    fn get_file(&self) -> &File {
-        self.file
-    }
-
-    fn get_io_metadata(&self) -> &IoMetadata {
-        self.metadata
     }
 }
