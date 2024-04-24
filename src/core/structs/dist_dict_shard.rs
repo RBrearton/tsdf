@@ -70,6 +70,7 @@ where
         loc: Addr,
         io_metadata: &'a IoMetadata,
         file: &'b File,
+        is_initialized: bool,
     ) -> DistDictShard<'a, 'b, TVal> {
         DistDictShard {
             val: PhantomData::<TVal>,
@@ -77,7 +78,7 @@ where
             loc,
             io_metadata,
             file,
-            initialized: false,
+            initialized: is_initialized,
         }
     }
 }
@@ -107,7 +108,7 @@ where
     DistDictShard<'a, 'b, TVal>: DistDictShardReader<TVal>,
 {
     fn get_next(&self) -> &LinkPtr {
-        &self.get_next_ptr()
+        self.get_next_wtr()
     }
 
     fn get_link_number(&self) -> i32 {
