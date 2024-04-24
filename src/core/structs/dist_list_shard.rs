@@ -8,8 +8,6 @@ use crate::core::traits::Link;
 use crate::core::traits::Locatable;
 
 pub(crate) struct DistListShard<'a, 'b> {
-    next: LinkPtr,
-    vals: Vec<Addr>,
     link_number: i32,
     loc: Addr,
     file: &'a File,
@@ -27,15 +25,5 @@ impl Locatable for DistListShard<'_, '_> {
 
     fn get_io_metadata(&self) -> &IoMetadata {
         self.metadata
-    }
-}
-
-impl Link for DistListShard<'_, '_> {
-    fn get_next(&self) -> &LinkPtr {
-        &self.next
-    }
-
-    fn get_link_number(&self) -> i32 {
-        self.link_number
     }
 }
