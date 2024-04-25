@@ -6,6 +6,7 @@
         "behaviour",
         "hashable",
         "Hasher",
+        "initializable",
         "LinkPtrs",
         "Readerless",
         "reimplementation",
