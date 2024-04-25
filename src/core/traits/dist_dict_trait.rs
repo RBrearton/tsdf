@@ -94,8 +94,82 @@ pub(crate) trait DistDictTrait<TKey: TsdfHashable, TVal: FileSerializable>:
     }
 
     /// Removes a key-value pair from the dictionary.
-    fn remove(&self, key: &TKey);
+    fn remove(&self, key: &TKey) {
+        // Start by hashing the key.
+        let hashed_key = key.hash();
 
-    /// Gets the value associated with the given key.
-    fn get(&self, key: &TKey) -> TVal;
+        // Now that we've got the key, we need to find the first shard in the
+        // distributed dictionary that has space for the key.
+        let mut shard = self.get_first_shard();
+
+        loop {
+            // Check if the key is in the shard.
+            if shard.contains(&hashed_key) {
+                shard.remove(&hashed_key);
+                return;
+            }
+
+            // If the key isn't in the shard, we need to move to the next shard.
+            match shard.get_next() {
+                // If the next pointer is null, we failed to find the key. This
+                // is fine, it just means that we have nothing to delete.
+                LinkPtr::Null(_) => {
+                    return;
+                }
+
+                // If the next pointer is an address, we need to load the next
+                // shard, which is stored at that address.
+                LinkPtr::Addr(addr) => {
+                    // Load the next shard.
+                    shard = DistDictShard::new(
+                        shard.get_link_number() + 1,
+                        Addr::new(addr.get_loc()),
+                        self.get_io_metadata(),
+                        self.get_file(),
+                        true,
+                    )
+                }
+            }
+        }
+    }
+
+    /// Gets the value associated with the given key. Returns None if the key is
+    /// not in the dictionary.
+    fn get(&self, key: &TKey) -> Option<TVal> {
+        // Start by hashing the key.
+        let hashed_key = key.hash();
+
+        // Now that we've got the key, we need to find the first shard in the
+        // distributed dictionary that has space for the key.
+        let mut shard = self.get_first_shard();
+
+        loop {
+            // Check if the key is in the shard.
+            let num_keys = shard.get_num_keys();
+            let idx = hashed_key.get_hash_table_idx(num_keys as u64);
+            if shard.contains(&hashed_key) {
+                return Some(shard.get_val(idx as usize));
+            }
+
+            // If the key isn't in the shard, we need to move to the next shard.
+            match shard.get_next() {
+                // If the next pointer is null, we failed to find the key. In
+                // this case, we panic.
+                LinkPtr::Null(_) => return None,
+
+                // If the next pointer is an address, we need to load the next
+                // shard, which is stored at that address.
+                LinkPtr::Addr(addr) => {
+                    // Load the next shard.
+                    shard = DistDictShard::new(
+                        shard.get_link_number() + 1,
+                        Addr::new(addr.get_loc()),
+                        self.get_io_metadata(),
+                        self.get_file(),
+                        true,
+                    )
+                }
+            }
+        }
+    }
 }
