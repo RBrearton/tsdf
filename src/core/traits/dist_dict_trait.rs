@@ -15,7 +15,45 @@ pub(crate) trait DistDictTrait<TKey: TsdfHashable, TVal: FileSerializable>:
     Locatable
 {
     /// Returns the first shard in the distributed dictionary.
-    fn get_first_shard(&self) -> DistDictShard<'_, '_, TVal>;
+    fn get_first_shard(&self) -> DistDictShard<'_, '_, TVal> {
+        DistDictShard::<TVal>::new(
+            0, // The first shard has link number 0.
+            self.get_first_shard_addr(),
+            self.get_io_metadata(),
+            self.get_file(),
+            // If the distributed dictionary is initialized, the first shard is
+            // initialized.
+            self.is_initialized(),
+        )
+    }
+
+    /// Returns the address of the first shard in the distributed dictionary.
+    fn get_first_shard_addr(&self) -> Addr;
+
+    /// Initializes the distributed dictionary.
+    fn init(&mut self) {
+        // First we write the distributed dictionary's internal data to the
+        // file.
+        // Currently, this is just the first shard's address.
+        self.get_first_shard_addr().write(
+            self.get_addr().clone(),
+            self.get_file(),
+            self.get_io_metadata(),
+        );
+
+        // Initialize the first shard.
+        let mut shard = self.get_first_shard();
+        shard.init();
+
+        // Set the initialized flag to true.
+        self.set_initialization_state(true);
+    }
+
+    /// Returns whether the distributed dictionary has been initialized.
+    fn is_initialized(&self) -> bool;
+
+    /// Sets the initialized flag to the given value.
+    fn set_initialization_state(&mut self, initialized: bool);
 
     /// Adds a key-value pair to the dictionary.
     fn add(&self, key: &TKey, val: &TVal) {
