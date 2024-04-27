@@ -62,3 +62,60 @@ where
         self.initialized = initialized;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::structs::TsdfHash;
+
+    use tempfile::tempfile;
+
+    macro_rules! print_file {
+        ($file:expr) => {{
+            let mut file_clone = $file.try_clone().unwrap();
+            let mut file_contents = String::new();
+            file_clone.read_to_string(&mut file_contents).unwrap();
+            file_clone.seek(std::io::SeekFrom::Start(0)).unwrap();
+            println!("{}", file_contents);
+            println!("\n\n\n\n\n\n\n\n");
+        }};
+    }
+
+    /// Test that we can add a single key value pair to the distributed
+    /// dictionary. This should involve adding a shard to the distributed dict,
+    /// initializing the shard, and then adding the key-value pair to the shard.
+    /// This test uses human readable crate::core::enums::FileFormat::Text
+    /// format.
+    #[test]
+    fn test_add_text() {
+        // Not yet implemented.
+        unimplemented!()
+    }
+
+    /// Test that we can add and remove a single key value pair to the
+    /// distributed dictionary. This follows the logic in the above test, but
+    /// also removes the key-value pair after adding it. This test uses human
+    /// readable FileFormat::Text format.
+    #[test]
+    fn test_add_remove_text() {
+        // Not yet implemented.
+        unimplemented!()
+    }
+
+    /// Test that we can add a single key value pair to the distributed
+    /// dictionary. This test uses the production binary format.
+    #[test]
+    fn test_add_bin() {
+        // Not yet implemented.
+        unimplemented!()
+    }
+
+    /// Test that we can add and remove a single key value pair to the
+    /// distributed dictionary. This test uses the production binary format.
+    /// This test uses the production binary format.
+    #[test]
+    fn test_add_remove_bin() {
+        // Not yet implemented.
+        unimplemented!()
+    }
+}
