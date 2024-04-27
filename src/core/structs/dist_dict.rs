@@ -118,4 +118,16 @@ mod tests {
         // Not yet implemented.
         unimplemented!()
     }
+
+    /// This is something of a stress test. This forces the distributed dict
+    /// to create many shards by adding a large number of key value pairs.
+    /// We then make sure that every key value pair is present, and that we can
+    /// remove and re-add them all.
+    /// This is really an integration test, but is fast enough to sit in the
+    /// unit test suite comfortably.
+    #[test]
+    fn test_many_keys() {
+        // Not yet implemented.
+        unimplemented!()
+    }
 }
