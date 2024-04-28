@@ -150,7 +150,7 @@ where
             + size_of_bool;
         let start_of_shard = self.get_addr().get_loc();
 
-        first_byte_following_shard - start_of_shard + 1
+        first_byte_following_shard - start_of_shard
     }
 }
 
