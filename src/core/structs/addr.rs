@@ -1,4 +1,4 @@
-use crate::core::traits::FileSerializable;
+use crate::core::traits::{FileSerializable, SizedOnDisk};
 
 /// The Addr struct is a simple struct that holds an integer location. This
 /// location is an offset within the file, and can be used to uniquely locate
@@ -21,6 +21,22 @@ impl Addr {
 /// The value that we use to represent a null Addr.
 const NULL_LOC: u64 = 0;
 
+impl SizedOnDisk for Addr {
+    fn get_bin_size_on_disk() -> u64 {
+        std::mem::size_of::<u64>() as u64
+    }
+
+    fn get_json_size_on_disk() -> u64 {
+        // To get the size of the json string, we make the largest possible
+        // Addr, convert it to json, and get the length of the json string. This
+        // is far from optimized, but the whole point of the json representation
+        // is to be debug-friendly, not performant.
+        let addr = Addr { loc: u64::MAX };
+        let json = serde_json::to_string(&addr).unwrap();
+        json.len() as u64
+    }
+}
+
 impl FileSerializable for Addr {
     fn null() -> Self {
         Self { loc: NULL_LOC }
@@ -34,20 +50,6 @@ impl FileSerializable for Addr {
     fn from_bin(bytes: &[u8]) -> Self {
         let loc = u64::from_le_bytes(bytes[0..8].try_into().unwrap());
         Self::new(loc)
-    }
-
-    fn get_bin_size_on_disk() -> u64 {
-        std::mem::size_of::<u64>() as u64
-    }
-
-    fn get_json_size_on_disk() -> u64 {
-        // To get the size of the json string, we make the largest possible
-        // Addr, convert it to json, and get the length of the json string. This
-        // is far from optimized, but the whole point of the json representation
-        // is to be debug-friendly, not performant.
-        let addr = Addr { loc: u64::MAX };
-        let json = serde_json::to_string(&addr).unwrap();
-        json.len() as u64
     }
 }
 

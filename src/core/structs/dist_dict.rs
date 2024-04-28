@@ -20,9 +20,6 @@ pub(crate) struct DistDict<'a, 'b, TKey, TVal> {
     /// The file that the DistDict is stored in.
     file: &'b File,
 
-    /// The location of the first shard of this distributed dictionary.
-    first_shard_addr: Addr,
-
     /// Whether the distributed dictionary has been initialized.
     initialized: bool,
 }
@@ -65,8 +62,13 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::ops::Add;
+
     use super::*;
-    use crate::core::structs::TsdfHash;
+    use crate::core::{
+        enums::{IoMode, WriteMode},
+        structs::{TsdfHash, TsdfMetadata},
+    };
 
     use tempfile::tempfile;
 
@@ -88,6 +90,27 @@ mod tests {
     /// format.
     #[test]
     fn test_add_text() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Text,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, TsdfHash, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            first_shard_addr: Addr::null(),
+            initialized: false,
+        };
+
         // Not yet implemented.
         unimplemented!()
     }
