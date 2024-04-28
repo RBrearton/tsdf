@@ -126,10 +126,14 @@ mod tests {
         let addr = Addr::new(123);
         let link_ptr = LinkPtr::Addr(addr);
         let json = link_ptr.to_json();
-        assert_eq!(json, "{\"loc\":123}");
+
+        // Note that we need to get the padding right because the json string
+        // is fixed width, and the maximum value of the address is 2^64 - 1,
+        // which is 20 characters long.
+        assert_eq!(json, "{\"loc\":123}                 ");
 
         let null_link_ptr = LinkPtr::Null(Addr::new(0));
         let json = null_link_ptr.to_json();
-        assert_eq!(json, "{\"loc\":0}");
+        assert_eq!(json, "{\"loc\":0}                   ");
     }
 }
