@@ -5,14 +5,14 @@ use crate::core::{
 
 use super::{
     DistDictShardReader, DistDictShardWriter, FileSerializable, Link,
-    Locatable, TsdfHashable,
+    Locatable, SizedOnDisk, TsdfHashable,
 };
 
 /// A distributed dictionary is a key-value store that is distributed across
 /// multiple shards. Anything that implements this pub(crate) trait can behave
 /// as a distributed dictionary.
 pub(crate) trait DistDictTrait<TKey: TsdfHashable, TVal: FileSerializable>:
-    Locatable
+    Locatable + SizedOnDisk
 {
     /// Returns the first shard in the distributed dictionary.
     fn get_first_shard(&self) -> DistDictShard<'_, '_, TVal> {
@@ -28,7 +28,13 @@ pub(crate) trait DistDictTrait<TKey: TsdfHashable, TVal: FileSerializable>:
     }
 
     /// Returns the address of the first shard in the distributed dictionary.
-    fn get_first_shard_addr(&self) -> Addr;
+    fn get_first_shard_addr(&self) -> Addr {
+        // The first shard is always located immediately after the dist dict
+        // itself.
+        let dist_dict_size = Self::get_size_on_disk(self.get_io_metadata());
+        let first_shard_loc = self.get_addr().get_loc() + dist_dict_size;
+        Addr::new(first_shard_loc)
+    }
 
     /// Initializes the distributed dictionary.
     fn init(&mut self) {
