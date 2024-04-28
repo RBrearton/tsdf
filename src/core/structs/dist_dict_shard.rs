@@ -206,6 +206,41 @@ mod tests {
         }};
     }
 
+    /// Test that the size of the shard on disk is as expected. We do this by
+    /// initializing the shard and then checking the size of the shard on disk,
+    /// and comparing it to the expected size.
+    #[test]
+    fn test_size_on_disk() {
+        // Define the io metadata.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Text,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDictShard.
+        let mut shard: DistDictShard<'_, '_, Addr> = DistDictShard {
+            link_number: 1,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            val: std::marker::PhantomData,
+            initialized: false,
+        };
+
+        // Initialize the shard.
+        shard.init();
+        print_file!(file);
+
+        // Check that the size of the shard on disk is as expected.
+        let expected_size = shard.get_size_on_disk(&io_metadata);
+        let actual_size = file.metadata().unwrap().len();
+        assert_eq!(expected_size, actual_size);
+    }
+
     /// Test that we can add a key-value pair to the shard and then remove it.
     /// This test uses a text file format.
     #[test]
