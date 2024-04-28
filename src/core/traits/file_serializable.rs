@@ -5,9 +5,14 @@ use crate::core::{
     structs::{Addr, IoMetadata},
 };
 
+use super::SizedOnDisk;
+
 /// The FileSerializable trait is used to define objects that can be written to
-/// and read from files.
-pub(crate) trait FileSerializable
+/// and read from files. This trait is designed to be used with objects whose
+/// state is written to disk, and read from disk, in one go. This makes it
+/// useful for something like an individual key in a dictionary, but not for
+/// the dictionary itself (where writes will be on a per-key/value basis).
+pub(crate) trait FileSerializable: SizedOnDisk
 where
     Self: serde::Serialize + serde::de::DeserializeOwned,
 {
@@ -44,28 +49,6 @@ where
     fn from_json(json: String) -> Self {
         serde_json::from_str(&json).unwrap()
     }
-
-    /// Get's the size of the object on disk, according to the current
-    /// IoMetadata.
-    fn get_size_on_disk(io_metadata: &IoMetadata) -> u64 {
-        match io_metadata.get_tsdf_metadata().get_file_format() {
-            FileFormat::Binary => Self::get_bin_size_on_disk(),
-            FileFormat::Text => Self::get_json_size_on_disk(),
-        }
-    }
-
-    /// Returns the size of the object once serialized to binary, in bytes.
-    fn get_bin_size_on_disk() -> u64;
-
-    /// Returns the size of the object once serialized to json, in bytes.
-    /// # BE CAREFUL
-    /// Please make sure that you consider the maximum possible size of the json
-    /// string when implementing this method. If you aren't sure, bigger is
-    /// better.
-    ///
-    /// Don't worry about performance in implementations. A good example of how
-    /// to implement this can be found in the TsdfHash struct.
-    fn get_json_size_on_disk() -> u64;
 
     /// Writes the object to the file at the given location.
     fn write(&self, addr: Addr, file: &File, io_metadata: &IoMetadata) {
