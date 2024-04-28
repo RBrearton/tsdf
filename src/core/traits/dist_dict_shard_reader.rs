@@ -10,8 +10,15 @@ use super::{FileSerializable, Link, SizedOnDisk};
 /// The DistDictShard is part of a distributed dictionary. A DistDict is made up
 /// of multiple DistDictShards, each of which is responsible for a subset of the
 /// keys.
+///
+/// The structure of the DistDictShard on disk is as follows:
+///
+/// | is_next_written (1 byte) | next (8 bytes) |
+/// | hash_0 (8 bytes) | val_0 (var bytes) | is_hash_written_0 (1 byte) |
+/// ...
+/// | hash_n (8 bytes) | val_n (var bytes) | is_hash_written_n (1 byte) |
 pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
-    Link
+    Link + SizedOnDisk
 {
     /// Returns the number of keys in the shard.
     fn get_num_keys(&self) -> usize;
