@@ -4,5 +4,5 @@ use crate::core::structs::DistDict;
 /// associated with metadata, which is both Dir and Array.
 /// The metadata itself is a dictionary mapping string keys to string values.
 pub(crate) trait HasMetadataTags {
-    fn get_metadata(&self) -> DistDict<String>;
+    fn get_metadata(&self) -> DistDict<String, String>;
 }
