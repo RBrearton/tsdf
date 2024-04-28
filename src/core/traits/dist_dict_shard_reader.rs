@@ -18,7 +18,7 @@ use super::{FileSerializable, Link, SizedOnDisk};
 /// ...
 /// | hash_n (8 bytes) | val_n (var bytes) | is_hash_written_n (1 byte) |
 pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
-    Link + SizedOnDisk
+    Link
 {
     /// Returns the number of keys in the shard.
     fn get_num_keys(&self) -> usize;
