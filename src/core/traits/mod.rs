@@ -11,6 +11,7 @@ pub(crate) mod has_name;
 pub(crate) mod initializable;
 pub(crate) mod link;
 pub(crate) mod locatable;
+pub(crate) mod sized_on_disk;
 pub(crate) mod tsdf_file_trait;
 pub(crate) mod tsdf_hashable;
 
@@ -28,5 +29,6 @@ pub(crate) use self::has_name::HasName;
 pub(crate) use self::initializable::Initializable;
 pub(crate) use self::link::Link;
 pub(crate) use self::locatable::Locatable;
+pub(crate) use self::sized_on_disk::SizedOnDisk;
 pub(crate) use self::tsdf_file_trait::TsdfFileTrait;
 pub(crate) use self::tsdf_hashable::TsdfHashable;
