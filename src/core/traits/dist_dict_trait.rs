@@ -62,7 +62,13 @@ pub(crate) trait DistDictTrait<TKey: TsdfHashable, TVal: FileSerializable>:
     fn set_initialization_state(&mut self, initialized: bool);
 
     /// Adds a key-value pair to the dictionary.
-    fn add(&self, key: &TKey, val: &TVal) {
+    fn add(&mut self, key: &TKey, val: &TVal) {
+        // Initialize the distributed dictionary if it hasn't been initialized
+        // yet.
+        if !self.is_initialized() {
+            self.init();
+        }
+
         // Start by hashing the key.
         let hashed_key = key.hash();
 
@@ -139,6 +145,12 @@ pub(crate) trait DistDictTrait<TKey: TsdfHashable, TVal: FileSerializable>:
 
     /// Removes a key-value pair from the dictionary.
     fn remove(&self, key: &TKey) {
+        // If the distributed dictionary hasn't been initialized, we there's no
+        // need to remove anything.
+        if !self.is_initialized() {
+            return;
+        }
+
         // Start by hashing the key.
         let hashed_key = key.hash();
 
@@ -180,6 +192,12 @@ pub(crate) trait DistDictTrait<TKey: TsdfHashable, TVal: FileSerializable>:
     /// Gets the value associated with the given key. Returns None if the key is
     /// not in the dictionary.
     fn get(&self, key: &TKey) -> Option<TVal> {
+        // If the distributed dictionary hasn't been initialized, we can't get
+        // anything.
+        if !self.is_initialized() {
+            return None;
+        }
+
         // Start by hashing the key.
         let hashed_key = key.hash();
 
