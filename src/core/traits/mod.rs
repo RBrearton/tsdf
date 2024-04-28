@@ -14,6 +14,7 @@ pub(crate) mod link;
 pub(crate) mod locatable;
 pub(crate) mod tsdf_file_trait;
 pub(crate) mod tsdf_hashable;
+pub(crate) mod variable_size_on_disk;
 
 // Export the traits.
 pub(crate) use self::array_trait::ArrayTrait;
@@ -32,3 +33,4 @@ pub(crate) use self::link::Link;
 pub(crate) use self::locatable::Locatable;
 pub(crate) use self::tsdf_file_trait::TsdfFileTrait;
 pub(crate) use self::tsdf_hashable::TsdfHashable;
+pub(crate) use self::variable_size_on_disk::VariableSizeOnDisk;
