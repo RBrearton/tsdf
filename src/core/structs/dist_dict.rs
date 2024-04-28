@@ -1,7 +1,7 @@
 use std::{fs::File, marker::PhantomData};
 
 use crate::core::traits::{
-    DistDictTrait, FileSerializable, Locatable, TsdfHashable,
+    DistDictTrait, FileSerializable, Locatable, SizedOnDisk, TsdfHashable,
 };
 
 use super::{Addr, IoMetadata};
@@ -42,15 +42,27 @@ where
     }
 }
 
+impl<TKey, TVal> SizedOnDisk for DistDict<'_, '_, TKey, TVal>
+where
+    TKey: TsdfHashable,
+    TVal: FileSerializable,
+{
+    fn get_bin_size_on_disk() -> u64 {
+        // The size of the DistDict is the size of the address.
+        Addr::get_bin_size_on_disk()
+    }
+
+    fn get_json_size_on_disk() -> u64 {
+        // The size of the DistDict is the size of the address.
+        Addr::get_json_size_on_disk()
+    }
+}
+
 impl<TKey, TVal> DistDictTrait<TKey, TVal> for DistDict<'_, '_, TKey, TVal>
 where
     TKey: TsdfHashable,
     TVal: FileSerializable,
 {
-    fn get_first_shard_addr(&self) -> Addr {
-        self.first_shard_addr
-    }
-
     fn is_initialized(&self) -> bool {
         self.initialized
     }
@@ -107,7 +119,6 @@ mod tests {
             loc: Addr::new(0),
             io_metadata: &io_metadata,
             file: &file,
-            first_shard_addr: Addr::null(),
             initialized: false,
         };
 

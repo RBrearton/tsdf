@@ -21,5 +21,3 @@ pub(crate) use io_metadata::IoMetadata;
 pub(crate) use tsdf_file::TsdfFile;
 pub(crate) use tsdf_hash::TsdfHash;
 pub(crate) use tsdf_metadata::TsdfMetadata;
-
-use high_level_object_metadata::HighLevelObjectMetadata;
