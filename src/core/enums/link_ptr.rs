@@ -1,4 +1,7 @@
-use crate::core::{structs::Addr, traits::FileSerializable};
+use crate::core::{
+    structs::Addr,
+    traits::{FileSerializable, SizedOnDisk},
+};
 
 /// The main link pointer enum, which can either be an address or a null
 /// pointer.
@@ -19,6 +22,16 @@ impl LinkPtr {
             LinkPtr::Addr(addr) => &addr,
             LinkPtr::Null(addr) => &addr,
         }
+    }
+}
+
+impl SizedOnDisk for LinkPtr {
+    fn get_bin_size_on_disk() -> u64 {
+        Addr::get_bin_size_on_disk()
+    }
+
+    fn get_json_size_on_disk() -> u64 {
+        Addr::get_json_size_on_disk()
     }
 }
 
@@ -55,14 +68,6 @@ impl FileSerializable for LinkPtr {
         } else {
             LinkPtr::Addr(addr)
         }
-    }
-
-    fn get_bin_size_on_disk() -> u64 {
-        Addr::get_bin_size_on_disk()
-    }
-
-    fn get_json_size_on_disk() -> u64 {
-        Addr::get_json_size_on_disk()
     }
 }
 
