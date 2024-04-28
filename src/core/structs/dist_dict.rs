@@ -75,13 +75,12 @@ where
 #[cfg(test)]
 mod tests {
     use std::io::{Read, Seek};
-    use std::ops::Add;
 
     use super::*;
-    use crate::core::traits::VariableSizeOnDisk;
+    use crate::core::traits::{DistDictShardReader, VariableSizeOnDisk};
     use crate::core::{
         enums::{IoMode, WriteMode},
-        structs::{TsdfHash, TsdfMetadata},
+        structs::TsdfMetadata,
     };
 
     use tempfile::tempfile;
@@ -197,12 +196,13 @@ mod tests {
     }
 
     /// Test that we can add a single key value pair to the distributed
-    /// dictionary. This should involve adding a shard to the distributed dict,
-    /// initializing the shard, and then adding the key-value pair to the shard.
-    /// This test uses human readable crate::core::enums::FileFormat::Text
-    /// format.
+    /// dictionary. This test involves adding a key value pair to the dist
+    /// dictionary, and then directly checking that the shard contains the key.
+    /// In other words, this tests our ability to add, without testing a
+    /// .contains() method on the DistDict itself (we use the shard's .contains
+    /// method, which is separately tested).
     #[test]
-    fn test_add_text() {
+    fn test_add_text_shard_contains() {
         // The necessary setup.
         let io_metadata = IoMetadata::new(
             TsdfMetadata::new(
@@ -230,35 +230,314 @@ mod tests {
         // Add the key value pair to the distributed dictionary.
         dist_dict.add(&key, &val);
 
-        // Not yet implemented.
-        unimplemented!()
+        // Get the first shard.
+        let shard = dist_dict.get_first_shard();
+
+        // Print the file.
+        print_file!(file);
+
+        // Hash the key.
+        let hashed_key = key.hash();
+
+        // Make sure that the shard contains the key.
+        assert!(shard.contains(&hashed_key));
+    }
+
+    /// Make sure that we can add a single key value pair to the distributed
+    /// dictionary. This is the same as the above test, but using the binary
+    /// format.
+    #[test]
+    fn test_add_bin_shard_contains() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Binary,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        // Add a key value pair to the distributed dictionary.
+        let key = "key".to_string();
+        let val = Addr::new(1234);
+
+        // Add the key value pair to the distributed dictionary.
+        dist_dict.add(&key, &val);
+
+        // Get the first shard.
+        let shard = dist_dict.get_first_shard();
+
+        // Hash the key.
+        let hashed_key = key.hash();
+
+        // Make sure that the shard contains the key.
+        assert!(shard.contains(&hashed_key));
+    }
+
+    /// Make sure that the contains method returns False when the key is not in
+    /// the distributed dictionary. This uses the Text file format.
+    #[test]
+    fn test_contains_false_text() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Text,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        let key = "key";
+
+        // Make sure that the shard does not contain the key.
+        assert!(!dist_dict.contains(&key.to_string()));
+    }
+
+    /// Make sure that the contains method returns False when the key is not in
+    /// the distributed dictionary. This uses the Binary file format.
+    #[test]
+    fn test_contains_false_bin() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Binary,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        let key = "key";
+
+        // Make sure that the shard does not contain the key.
+        assert!(!dist_dict.contains(&key.to_string()));
+    }
+
+    /// Make sure that the contains method returns True when the key is in the
+    /// distributed dictionary. This uses the Text file format.
+    #[test]
+    fn test_contains_true_text() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Text,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        let key = "key".to_string();
+        let val = Addr::new(1234);
+
+        // Add the key value pair to the distributed dictionary.
+        dist_dict.add(&key, &val);
+
+        // Make sure that the shard contains the key.
+        assert!(dist_dict.contains(&key));
+    }
+
+    /// Make sure that the contains method returns True when the key is in the
+    /// distributed dictionary. This uses the Binary file format.
+    #[test]
+    fn test_contains_true_bin() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Binary,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        let key = "key".to_string();
+        let val = Addr::new(1234);
+
+        // Add the key value pair to the distributed dictionary.
+        dist_dict.add(&key, &val);
+
+        // Make sure that the shard contains the key.
+        assert!(dist_dict.contains(&key));
     }
 
     /// Test that we can add and remove a single key value pair to the
-    /// distributed dictionary. This follows the logic in the above test, but
-    /// also removes the key-value pair after adding it. This test uses human
-    /// readable FileFormat::Text format.
+    /// distributed dictionary.
     #[test]
     fn test_add_remove_text() {
-        // Not yet implemented.
-        unimplemented!()
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Text,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        let key = "key".to_string();
+        let val = Addr::new(1234);
+
+        // Add the key value pair to the distributed dictionary.
+        dist_dict.add(&key, &val);
+
+        // Make sure that the shard contains the key.
+        assert!(dist_dict.contains(&key));
+
+        // Remove the key value pair from the distributed dictionary.
+        dist_dict.remove(&key);
+
+        // Make sure that the shard does not contain the key.
+        assert!(!dist_dict.contains(&key));
     }
 
-    /// Test that we can add a single key value pair to the distributed
-    /// dictionary. This test uses the production binary format.
-    #[test]
-    fn test_add_bin() {
-        // Not yet implemented.
-        unimplemented!()
-    }
-
-    /// Test that we can add and remove a single key value pair to the
-    /// distributed dictionary. This test uses the production binary format.
-    /// This test uses the production binary format.
+    /// As above, but using the binary file format.
     #[test]
     fn test_add_remove_bin() {
-        // Not yet implemented.
-        unimplemented!()
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Binary,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        let key = "key".to_string();
+        let val = Addr::new(1234);
+
+        // Add the key value pair to the distributed dictionary.
+        dist_dict.add(&key, &val);
+
+        // Make sure that the shard contains the key.
+        assert!(dist_dict.contains(&key));
+
+        // Remove the key value pair from the distributed dictionary.
+        dist_dict.remove(&key);
+
+        // Make sure that the shard does not contain the key.
+        assert!(!dist_dict.contains(&key));
+    }
+
+    /// Test adding two values with the same key twice. The second value should
+    /// overwrite the first. This uses the Text file format.
+    #[test]
+    fn test_add_twice_text() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Text,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        let key = "key".to_string();
+        let val1 = Addr::new(1234);
+        let val2 = Addr::new(5678);
+
+        // Add the key value pair to the distributed dictionary.
+        dist_dict.add(&key, &val1);
+
+        // Make sure that the shard contains the key.
+        assert!(dist_dict.contains(&key));
+
+        // Add the key value pair to the distributed dictionary.
+        dist_dict.add(&key, &val2);
+
+        // Make sure that the shard still contains the key.
+        assert!(dist_dict.contains(&key));
+
+        // Make sure that the shard contains the second value.
+        let shard = dist_dict.get_first_shard();
+        let hashed_key = key.hash();
+        let hash_idx =
+            hashed_key.get_hash_table_idx(shard.get_num_keys() as u64);
+        assert_eq!(shard.get_val(hash_idx as usize), val2);
     }
 
     /// This is something of a stress test. This forces the distributed dict
