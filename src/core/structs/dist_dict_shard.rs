@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::marker::PhantomData;
 
-use crate::core::traits::{DistDictShardWriter, FixedSizeOnDisk, Locatable};
+use crate::core::traits::{DistDictShardWriter, Locatable, VariableSizeOnDisk};
 use crate::core::{
     enums::LinkPtr,
     traits::{DistDictShardReader, FileSerializable, Link},
@@ -113,6 +113,44 @@ where
 
     fn get_link_number(&self) -> i32 {
         self.link_number
+    }
+}
+
+impl<'a, 'b, TVal> VariableSizeOnDisk for DistDictShard<'a, 'b, TVal>
+where
+    TVal: FileSerializable,
+    DistDictShard<'a, 'b, TVal>: DistDictShardReader<TVal>,
+{
+    fn get_bin_size_on_disk(&self) -> u64 {
+        // The simplest way to work out the size on the disk is to work out
+        // the difference between the location of the DistDictShard (as it is
+        // Locatable) and the address of the final thing in the DistDictShard.
+        // The very last part of the DistDictShard is the final is_hash_written
+        // boolean, which is 1 byte long.
+        let size_of_bool = 1;
+        let first_byte_following_shard = self
+            .get_is_hash_written_addr(self.get_num_keys() - 1)
+            .get_loc()
+            + size_of_bool;
+        let start_of_shard = self.get_addr().get_loc();
+
+        first_byte_following_shard - start_of_shard + 1
+    }
+
+    fn get_json_size_on_disk(&self) -> u64 {
+        // The simplest way to work out the size on the disk is to work out
+        // the difference between the location of the DistDictShard (as it is
+        // Locatable) and the address of the final thing in the DistDictShard.
+        // The very last part of the DistDictShard is the final is_hash_written
+        // boolean, which is 1 byte long.
+        let size_of_bool = 1;
+        let first_byte_following_shard = self
+            .get_is_hash_written_addr(self.get_num_keys() - 1)
+            .get_loc()
+            + size_of_bool;
+        let start_of_shard = self.get_addr().get_loc();
+
+        first_byte_following_shard - start_of_shard + 1
     }
 }
 
