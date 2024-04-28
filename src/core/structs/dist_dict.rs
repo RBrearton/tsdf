@@ -540,6 +540,140 @@ mod tests {
         assert_eq!(shard.get_val(hash_idx as usize), val2);
     }
 
+    /// Make sure that the get method returns None when the key is not in the
+    /// distributed dictionary. This uses the Text file format.
+    #[test]
+    fn test_get_none_text() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Text,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        let key = "key";
+
+        // Make sure that the get method returns None.
+        assert_eq!(dist_dict.get(&key.to_string()), None);
+    }
+
+    /// Make sure that the get method returns None when the key is not in the
+    /// distributed dictionary. This uses the Binary file format.
+    #[test]
+    fn test_get_none_bin() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Binary,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        let key = "key";
+
+        // Make sure that the get method returns None.
+        assert_eq!(dist_dict.get(&key.to_string()), None);
+    }
+
+    /// Make sure that the get method returns the correct value when the key is
+    /// in the distributed dictionary. This uses the Text file format.
+    #[test]
+    fn test_get_text() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Text,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        let key = "key".to_string();
+        let val = Addr::new(1234);
+
+        // Add the key value pair to the distributed dictionary.
+        dist_dict.add(&key, &val);
+
+        // Make sure that the shard contains the key.
+        assert!(dist_dict.contains(&key));
+
+        // Make sure that the get method returns the correct value.
+        assert_eq!(dist_dict.get(&key).unwrap(), val);
+    }
+
+    /// Make sure that the get method returns the correct value when the key is
+    /// in the distributed dictionary. This uses the Binary file format.
+    #[test]
+    fn test_get_bin() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Binary,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        let key = "key".to_string();
+        let val = Addr::new(1234);
+
+        // Add the key value pair to the distributed dictionary.
+        dist_dict.add(&key, &val);
+
+        // Make sure that the shard contains the key.
+        assert!(dist_dict.contains(&key));
+
+        // Make sure that the get method returns the correct value.
+        assert_eq!(dist_dict.get(&key).unwrap(), val);
+    }
+
     /// This is something of a stress test. This forces the distributed dict
     /// to create many shards by adding a large number of key value pairs.
     /// We then make sure that every key value pair is present, and that we can
@@ -548,7 +682,49 @@ mod tests {
     /// unit test suite comfortably.
     #[test]
     fn test_many_keys() {
-        // Not yet implemented.
-        unimplemented!()
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Binary,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        // Add a large number of key value pairs to the distributed dictionary.
+        let num_keys = 10000;
+        let mut key_vals = Vec::new();
+        for i in 0..num_keys {
+            let key = format!("key_{}", i);
+            let val = Addr::new(i as u64);
+            key_vals.push((key.clone(), val.clone()));
+            dist_dict.add(&key, &val);
+        }
+
+        // Make sure that all of the key value pairs are present.
+        for (key, val) in key_vals {
+            assert!(dist_dict.contains(&key));
+
+            // Get the value.
+            let found_val = dist_dict.get(&key).unwrap();
+            assert_eq!(found_val, val);
+
+            // Remove the key value pair.
+            dist_dict.remove(&key);
+
+            // Make sure that the key is no longer present.
+            assert!(!dist_dict.contains(&key));
+        }
     }
 }
