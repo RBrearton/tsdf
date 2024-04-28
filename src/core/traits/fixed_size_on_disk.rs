@@ -3,7 +3,7 @@ use crate::core::{enums::FileFormat, structs::IoMetadata};
 /// This trait should be implemented by anything that can be written to disk in
 /// any way. It is used to determine how much space the object will directly
 /// take up on disk.
-pub(crate) trait SizedOnDisk {
+pub(crate) trait FixedSizeOnDisk {
     /// Get's the size of the object on disk, according to the current
     /// IoMetadata.
     fn get_size_on_disk(io_metadata: &IoMetadata) -> u64 {

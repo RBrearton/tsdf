@@ -1,6 +1,6 @@
 use std::hash::{DefaultHasher, Hasher};
 
-use crate::core::traits::{FileSerializable, SizedOnDisk};
+use crate::core::traits::{FileSerializable, FixedSizeOnDisk};
 
 /// The TsdfHash struct is a simple struct that holds a hash value. This hash
 
@@ -37,7 +37,7 @@ impl TsdfHash {
     }
 }
 
-impl SizedOnDisk for TsdfHash {
+impl FixedSizeOnDisk for TsdfHash {
     fn get_bin_size_on_disk() -> u64 {
         std::mem::size_of::<u64>() as u64
     }

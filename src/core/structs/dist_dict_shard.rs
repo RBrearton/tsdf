@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::marker::PhantomData;
 
-use crate::core::traits::{DistDictShardWriter, Locatable};
+use crate::core::traits::{DistDictShardWriter, FixedSizeOnDisk, Locatable};
 use crate::core::{
     enums::LinkPtr,
     traits::{DistDictShardReader, FileSerializable, Link},
@@ -124,7 +124,8 @@ where
     fn get_num_keys(&self) -> usize {
         // The number of keys in the shard should be equal to 8 times the link
         // number raised to the power of 2.
-        (8 * self.link_number.pow(2)) as usize
+        let num_keys = 8 * (2 as usize).pow(self.link_number as u32);
+        num_keys as usize
     }
 }
 

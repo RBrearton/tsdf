@@ -1,6 +1,6 @@
 use crate::core::{
     structs::Addr,
-    traits::{FileSerializable, SizedOnDisk},
+    traits::{FileSerializable, FixedSizeOnDisk},
 };
 
 /// The main link pointer enum, which can either be an address or a null
@@ -25,7 +25,7 @@ impl LinkPtr {
     }
 }
 
-impl SizedOnDisk for LinkPtr {
+impl FixedSizeOnDisk for LinkPtr {
     fn get_bin_size_on_disk() -> u64 {
         Addr::get_bin_size_on_disk()
     }

@@ -5,7 +5,7 @@ use crate::core::{
     structs::{Addr, TsdfHash},
 };
 
-use super::{FileSerializable, Link, SizedOnDisk};
+use super::{FileSerializable, FixedSizeOnDisk, Link};
 
 /// The DistDictShard is part of a distributed dictionary. A DistDict is made up
 /// of multiple DistDictShards, each of which is responsible for a subset of the

@@ -1,4 +1,4 @@
-use crate::core::traits::{FileSerializable, SizedOnDisk};
+use crate::core::traits::{FileSerializable, FixedSizeOnDisk};
 
 /// The Addr struct is a simple struct that holds an integer location. This
 /// location is an offset within the file, and can be used to uniquely locate
@@ -21,7 +21,7 @@ impl Addr {
 /// The value that we use to represent a null Addr.
 const NULL_LOC: u64 = 0;
 
-impl SizedOnDisk for Addr {
+impl FixedSizeOnDisk for Addr {
     fn get_bin_size_on_disk() -> u64 {
         std::mem::size_of::<u64>() as u64
     }

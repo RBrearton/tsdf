@@ -5,14 +5,14 @@ use crate::core::{
     structs::{Addr, IoMetadata},
 };
 
-use super::SizedOnDisk;
+use super::FixedSizeOnDisk;
 
 /// The FileSerializable trait is used to define objects that can be written to
 /// and read from files. This trait is designed to be used with objects whose
 /// state is written to disk, and read from disk, in one go. This makes it
 /// useful for something like an individual key in a dictionary, but not for
 /// the dictionary itself (where writes will be on a per-key/value basis).
-pub(crate) trait FileSerializable: SizedOnDisk
+pub(crate) trait FileSerializable: FixedSizeOnDisk
 where
     Self: serde::Serialize + serde::de::DeserializeOwned,
 {

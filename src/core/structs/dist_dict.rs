@@ -1,7 +1,7 @@
 use std::{fs::File, marker::PhantomData};
 
 use crate::core::traits::{
-    DistDictTrait, FileSerializable, Locatable, SizedOnDisk, TsdfHashable,
+    DistDictTrait, FileSerializable, FixedSizeOnDisk, Locatable, TsdfHashable,
 };
 
 use super::{Addr, IoMetadata};
@@ -42,7 +42,7 @@ where
     }
 }
 
-impl<TKey, TVal> SizedOnDisk for DistDict<'_, '_, TKey, TVal>
+impl<TKey, TVal> FixedSizeOnDisk for DistDict<'_, '_, TKey, TVal>
 where
     TKey: TsdfHashable,
     TVal: FileSerializable,
@@ -74,6 +74,7 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::io::{Read, Seek};
     use std::ops::Add;
 
     use super::*;
@@ -95,6 +96,48 @@ mod tests {
         }};
     }
 
+    /// Test that we can initialize a distributed dictionary. Make sure that
+    /// this properly adds the distributed dictionary to the file. This test
+    /// uses the human readable crate::core::enums::FileFormat::Text format.
+    #[test]
+    fn test_init_text() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Text,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make sure that the file is empty.
+        assert_eq!(file.metadata().unwrap().len(), 0);
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        // Initialize the distributed dictionary.
+        dist_dict.init();
+
+        // Print the file.
+        print_file!(file);
+
+        // Make sure that the file contains the correct number of bytes (meaning
+        // that the entire distributed dictionary has been written to the file).
+        assert_eq!(
+            file.metadata().unwrap().len(),
+            DistDict::<'_, '_, String, Addr>::get_size_on_disk(&io_metadata)
+        );
+    }
+
     /// Test that we can add a single key value pair to the distributed
     /// dictionary. This should involve adding a shard to the distributed dict,
     /// initializing the shard, and then adding the key-value pair to the shard.
@@ -113,7 +156,7 @@ mod tests {
         let file = tempfile().unwrap();
 
         // Make a DistDict.
-        let mut dist_dict: DistDict<'_, '_, TsdfHash, Addr> = DistDict {
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
             key: PhantomData,
             val: PhantomData,
             loc: Addr::new(0),
@@ -121,6 +164,13 @@ mod tests {
             file: &file,
             initialized: false,
         };
+
+        // Add a key value pair to the distributed dictionary.
+        let key = "key".to_string();
+        let val = Addr::new(1234);
+
+        // Add the key value pair to the distributed dictionary.
+        dist_dict.add(&key, &val);
 
         // Not yet implemented.
         unimplemented!()
