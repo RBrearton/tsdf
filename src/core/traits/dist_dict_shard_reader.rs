@@ -5,7 +5,7 @@ use crate::core::{
     structs::{Addr, TsdfHash},
 };
 
-use super::{FileSerializable, FixedSizeOnDisk, Link};
+use super::{FileSerializable, FixedSizeOnDisk, Link, VariableSizeOnDisk};
 
 /// The DistDictShard is part of a distributed dictionary. A DistDict is made up
 /// of multiple DistDictShards, each of which is responsible for a subset of the
@@ -18,7 +18,7 @@ use super::{FileSerializable, FixedSizeOnDisk, Link};
 /// ...
 /// | hash_n (8 bytes) | val_n (var bytes) | is_hash_written_n (1 byte) |
 pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
-    Link
+    Link + VariableSizeOnDisk
 {
     /// Returns the number of keys in the shard.
     fn get_num_keys(&self) -> usize;
