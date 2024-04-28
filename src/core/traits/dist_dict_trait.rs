@@ -234,4 +234,47 @@ pub(crate) trait DistDictTrait<TKey: TsdfHashable, TVal: FileSerializable>:
             }
         }
     }
+
+    /// Returns whether the distributed dictionary contains the given key.
+    fn contains(&self, key: &TKey) -> bool {
+        // If the distributed dictionary hasn't been initialized, we can't
+        // contain anything.
+        if !self.is_initialized() {
+            return false;
+        }
+
+        // Start by hashing the key.
+        let hashed_key = key.hash();
+
+        // Now that we've got the key, we need to find the first shard in the
+        // distributed dictionary that has space for the key.
+        let mut shard = self.get_first_shard();
+
+        loop {
+            // Check if the key is in the shard.
+            if shard.contains(&hashed_key) {
+                return true;
+            }
+
+            // If the key isn't in the shard, we need to move to the next shard.
+            match shard.get_next() {
+                // If the next pointer is null, we failed to find the key. In
+                // this case, we return false.
+                LinkPtr::Null(_) => return false,
+
+                // If the next pointer is an address, we need to load the next
+                // shard, which is stored at that address.
+                LinkPtr::Addr(addr) => {
+                    // Load the next shard.
+                    shard = DistDictShard::new(
+                        shard.get_link_number() + 1,
+                        Addr::new(addr.get_loc()),
+                        self.get_io_metadata(),
+                        self.get_file(),
+                        true,
+                    )
+                }
+            }
+        }
+    }
 }
