@@ -78,6 +78,7 @@ mod tests {
     use std::ops::Add;
 
     use super::*;
+    use crate::core::traits::VariableSizeOnDisk;
     use crate::core::{
         enums::{IoMode, WriteMode},
         structs::{TsdfHash, TsdfMetadata},
@@ -127,6 +128,14 @@ mod tests {
         // Initialize the distributed dictionary.
         dist_dict.init();
 
+        // Get the first shard and work out its size on the disk.
+        let shard = dist_dict.get_first_shard();
+        let first_shard_size = shard.get_size_on_disk(&io_metadata);
+
+        // Work out the size of the DistDict object on disk.
+        let dist_dict_size =
+            DistDict::<'_, '_, String, Addr>::get_size_on_disk(&io_metadata);
+
         // Print the file.
         print_file!(file);
 
@@ -134,7 +143,56 @@ mod tests {
         // that the entire distributed dictionary has been written to the file).
         assert_eq!(
             file.metadata().unwrap().len(),
-            DistDict::<'_, '_, String, Addr>::get_size_on_disk(&io_metadata)
+            dist_dict_size + first_shard_size
+        );
+    }
+
+    /// This test is the same as the above test, but this time making sure that
+    /// we can initialize binary files on disk.
+    #[test]
+    fn test_init_bin() {
+        // The necessary setup.
+        let io_metadata = IoMetadata::new(
+            TsdfMetadata::new(
+                "no_version".to_string(),
+                crate::core::enums::FileFormat::Binary,
+            ),
+            IoMode::Write(WriteMode::LocklessWrite),
+        );
+        let file = tempfile().unwrap();
+
+        // Make sure that the file is empty.
+        assert_eq!(file.metadata().unwrap().len(), 0);
+
+        // Make a DistDict.
+        let mut dist_dict: DistDict<'_, '_, String, Addr> = DistDict {
+            key: PhantomData,
+            val: PhantomData,
+            loc: Addr::new(0),
+            io_metadata: &io_metadata,
+            file: &file,
+            initialized: false,
+        };
+
+        // Initialize the distributed dictionary.
+        dist_dict.init();
+
+        // Get the first shard and work out its size on the disk.
+        let shard = dist_dict.get_first_shard();
+        let first_shard_size = shard.get_size_on_disk(&io_metadata);
+
+        // Work out the size of the DistDict object on disk.
+        let dist_dict_size =
+            DistDict::<'_, '_, String, Addr>::get_size_on_disk(&io_metadata);
+
+        // Print the file.
+        print_file!(file);
+
+        // Make sure that the file contains the correct number of bytes (meaning
+        // that the entire distributed dictionary has been written to the file).
+        assert_eq!(
+            file.metadata().unwrap().len(),
+            dist_dict_size + first_shard_size
         );
     }
 
