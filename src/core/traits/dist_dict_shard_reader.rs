@@ -5,7 +5,9 @@ use crate::core::{
     structs::{Addr, TsdfHash},
 };
 
-use super::{FileSerializable, FixedSizeOnDisk, Link, VariableSizeOnDisk};
+use super::{
+    FileSerializable, FixedSizeOnDisk, Link, ShardTrait, VariableSizeOnDisk,
+};
 
 /// The DistDictShard is part of a distributed dictionary. A DistDict is made up
 /// of multiple DistDictShards, each of which is responsible for a subset of the
@@ -18,17 +20,14 @@ use super::{FileSerializable, FixedSizeOnDisk, Link, VariableSizeOnDisk};
 /// ...
 /// | hash_n (8 bytes) | val_n (var bytes) | is_hash_written_n (1 byte) |
 pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
-    Link + VariableSizeOnDisk
+    Link + VariableSizeOnDisk + ShardTrait<TVal>
 {
-    /// Returns the number of keys in the shard.
-    fn get_num_keys(&self) -> usize;
-
     /// Returns whether the shard contains the given hash.
     fn contains(&self, hashed_key: &TsdfHash) -> bool {
         // To check if the shard contains a hash, we need to calculate the hash
         // modulo the number of keys to work out the hash's position in the
         // shard.
-        let num_keys = self.get_num_keys();
+        let num_keys = self.get_capacity();
         let n = hashed_key.get_hash_value() % num_keys as u64;
 
         // Now we need to check if the hash at position n is equal to the hash
@@ -60,25 +59,6 @@ pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
             + size_of_bool // is_next_written
             + size_of_next // next
             + (size_of_hash + size_of_val + size_of_bool) * n as u64;
-
-        Addr::new(addr)
-    }
-
-    /// Gets the location of the is_next_written boolean in the shard.
-    fn get_is_next_written_addr(&self) -> Addr {
-        // The location of the is_next_written boolean is the location of the
-        // shard plus the size of the is_next_written boolean.
-        let addr = self.get_addr().get_loc();
-
-        Addr::new(addr)
-    }
-
-    /// Gets the location of the next LinkPtr in the shard.
-    fn get_next_addr(&self) -> Addr {
-        // The location of the next LinkPtr is the location of the shard plus
-        // the size of the is_next_written boolean.
-        let size_of_bool = 1;
-        let addr = self.get_is_next_written_addr().get_loc() + size_of_bool;
 
         Addr::new(addr)
     }
