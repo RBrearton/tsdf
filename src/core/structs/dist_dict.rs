@@ -77,7 +77,9 @@ mod tests {
     use std::io::{Read, Seek};
 
     use super::*;
-    use crate::core::traits::{DistDictShardReader, VariableSizeOnDisk};
+    use crate::core::traits::{
+        DistDictShardReader, ShardTrait, VariableSizeOnDisk,
+    };
     use crate::core::{
         enums::{IoMode, WriteMode},
         structs::TsdfMetadata,
@@ -536,7 +538,7 @@ mod tests {
         let shard = dist_dict.get_first_shard();
         let hashed_key = key.hash();
         let hash_idx =
-            hashed_key.get_hash_table_idx(shard.get_num_keys() as u64);
+            hashed_key.get_hash_table_idx(shard.get_capacity() as u64);
         assert_eq!(shard.get_val(hash_idx as usize), val2);
     }
 
