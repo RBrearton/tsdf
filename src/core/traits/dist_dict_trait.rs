@@ -5,7 +5,7 @@ use crate::core::{
 
 use super::{
     DistDictShardReader, DistDictShardWriter, FileSerializable,
-    FixedSizeOnDisk, Link, Locatable, TsdfHashable,
+    FixedSizeOnDisk, Link, Locatable, ShardTrait, TsdfHashable,
 };
 
 /// A distributed dictionary is a key-value store that is distributed across
@@ -78,7 +78,7 @@ pub(crate) trait DistDictTrait<TKey: TsdfHashable, TVal: FileSerializable>:
 
         loop {
             // Work out which index the key should be stored at in the shard.
-            let num_keys = shard.get_num_keys();
+            let num_keys = shard.get_capacity();
             let hash_table_idx = hashed_key.get_hash_table_idx(num_keys as u64);
 
             // Check to see if there's already a value at that index.
@@ -207,7 +207,7 @@ pub(crate) trait DistDictTrait<TKey: TsdfHashable, TVal: FileSerializable>:
 
         loop {
             // Check if the key is in the shard.
-            let num_keys = shard.get_num_keys();
+            let num_keys = shard.get_capacity();
             let idx = hashed_key.get_hash_table_idx(num_keys as u64);
             if shard.contains(&hashed_key) {
                 return Some(shard.get_val(idx as usize));
