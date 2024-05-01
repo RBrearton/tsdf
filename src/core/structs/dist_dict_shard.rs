@@ -1,7 +1,9 @@
 use std::fs::File;
 use std::marker::PhantomData;
 
-use crate::core::traits::{DistDictShardWriter, Locatable, VariableSizeOnDisk};
+use crate::core::traits::{
+    DistDictShardWriter, Locatable, ShardTrait, VariableSizeOnDisk,
+};
 use crate::core::{
     enums::LinkPtr,
     traits::{DistDictShardReader, FileSerializable, Link},
@@ -129,7 +131,7 @@ where
         // boolean, which is 1 byte long.
         let size_of_bool = 1;
         let first_byte_following_shard = self
-            .get_is_hash_written_addr(self.get_num_keys() - 1)
+            .get_is_hash_written_addr(self.get_capacity() - 1)
             .get_loc()
             + size_of_bool;
         let start_of_shard = self.get_addr().get_loc();
@@ -145,7 +147,7 @@ where
         // boolean, which is 1 byte long.
         let size_of_bool = 1;
         let first_byte_following_shard = self
-            .get_is_hash_written_addr(self.get_num_keys() - 1)
+            .get_is_hash_written_addr(self.get_capacity() - 1)
             .get_loc()
             + size_of_bool;
         let start_of_shard = self.get_addr().get_loc();
@@ -154,17 +156,38 @@ where
     }
 }
 
-// Implement the DistDictShardTrait for DistDictShard.
-impl<TVal> DistDictShardReader<TVal> for DistDictShard<'_, '_, TVal>
+impl<'a, 'b, TVal> ShardTrait<TVal> for DistDictShard<'a, 'b, TVal>
 where
     TVal: FileSerializable,
+    DistDictShard<'a, 'b, TVal>: DistDictShardReader<TVal>,
 {
-    fn get_num_keys(&self) -> usize {
+    fn get_capacity(&self) -> usize {
         // The number of keys in the shard should be equal to 8 times the link
-        // number raised to the power of 2.
+        // number raised to the power of 2. The number of keys that the shard
+        // can hold is equal to its capacity.
         let num_keys = 8 * (2 as usize).pow(self.link_number as u32);
         num_keys as usize
     }
+
+    fn get_count(&self) -> usize {
+        let mut count = 0;
+
+        // Iterate over every get_is_hash_written_addr in the shard.
+        for i in 0..self.get_capacity() {
+            // If the hash is written, increment the count.
+            if self.is_hash_written(i) {
+                count += 1;
+            }
+        }
+
+        count
+    }
+}
+
+// Implement the DistDictShardTrait for DistDictShard.
+impl<TVal> DistDictShardReader<TVal> for DistDictShard<'_, '_, TVal> where
+    TVal: FileSerializable
+{
 }
 
 // Implement the DistDictShardWriter trait for DistDictShard.
