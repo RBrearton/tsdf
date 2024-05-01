@@ -13,7 +13,7 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
     /// before any other functions are called on the DistDictShardWriter.
     fn init(&mut self) {
         // Iterate from 0 to the number of keys in the shard.
-        for i in 0..self.get_num_keys() {
+        for i in 0..self.get_capacity() {
             // Get the location of the hash and value in the shard.
             let hash_loc = self.get_hash_addr(i);
             let val_loc = self.get_val_addr(i);
@@ -69,7 +69,7 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
         }
 
         // Get the location of the hash in the shard.
-        let num_keys = self.get_num_keys();
+        let num_keys = self.get_capacity();
         let hash_table_idx = hashed_key.get_hash_table_idx(num_keys as u64);
 
         // Get the location of the hash and value in the shard.
@@ -101,7 +101,7 @@ pub(crate) trait DistDictShardWriter<TVal: FileSerializable>:
         }
 
         // Get the location of the hash in the shard.
-        let num_keys = self.get_num_keys();
+        let num_keys = self.get_capacity();
         let hash_table_idx = hashed_key.get_hash_table_idx(num_keys as u64);
 
         // Get the location of the hash and value in the shard.
