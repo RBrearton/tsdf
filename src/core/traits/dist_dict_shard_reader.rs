@@ -20,7 +20,7 @@ use super::{
 /// ...
 /// | hash_n (8 bytes) | val_n (var bytes) | is_hash_written_n (1 byte) |
 pub(crate) trait DistDictShardReader<TVal: FileSerializable>:
-    Link + VariableSizeOnDisk + ShardTrait<TVal>
+    VariableSizeOnDisk + ShardTrait<TVal>
 {
     /// Returns whether the shard contains the given hash.
     fn contains(&self, hashed_key: &TsdfHash) -> bool {
