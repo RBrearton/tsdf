@@ -6,7 +6,7 @@ use crate::core::{
 };
 
 use super::{
-    FileSerializable, FixedSizeOnDisk, Link, ShardTrait, VariableSizeOnDisk,
+    FileSerializable, FixedSizeOnDisk, ShardTrait, VariableSizeOnDisk,
 };
 
 /// The DistDictShard is part of a distributed dictionary. A DistDict is made up
