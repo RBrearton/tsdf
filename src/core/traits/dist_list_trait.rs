@@ -6,8 +6,11 @@ pub(crate) trait DistListTrait<T: FileSerializable> {
     /// Adds an element to the list.
     fn add(&self, elem: T);
 
-    /// Removes an element from the list.
-    fn remove(&self, elem: T);
+    /// Adds a list of elements to the list.
+    fn add_all(&self, elems: Vec<T>);
+
+    /// Updates the element at the given index.
+    fn update(&self, index: i32, elem: T);
 
     /// Gets the element at the given index.
     fn get(&self, index: i32) -> T;
