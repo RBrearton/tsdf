@@ -2,7 +2,7 @@ use crate::core::structs::Addr;
 
 use super::{FileSerializable, ShardTrait, VariableSizeOnDisk};
 
-/// TThis trait defines everything we need to be able to do to read from a
+/// This trait defines everything we need to be able to do to read from a
 /// shard of a distributed list in a file.
 pub(crate) trait DistListShardReader<T: FileSerializable>:
     VariableSizeOnDisk + ShardTrait<T>
